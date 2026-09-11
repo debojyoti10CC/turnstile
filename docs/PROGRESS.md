@@ -7,7 +7,7 @@
 | P1 Contract on LocalNet + escrow client | ✅ | deploy script, 6 real-tx LocalNet invariant tests, `packages/escrow-client` (TS tx builders) all done and verified against real transactions |
 | P2 Plugin client + server | 🟡 | core verify/charge path + client scheme done and tested (scoped per DECISIONS.md); facilitator package, full corrective-402 wire plumbing through real @x402/core HTTP stack, and file/SQLite storage backends not yet built |
 | P3 Facilitator + demo apps | ✅ | facilitator, demo-merchant, demo-agent all built and run for real on LocalNet: 200/200 dynamic-priced calls through one channel, agent/merchant state agree exactly |
-| P4 Settler | ⬜ | |
+| P4 Settler | ✅ | threshold/periodic/on-withdraw claim policies + settle, verified against real LocalNet (I8) |
 | P5 Adversary | ⬜ | |
 | P6 Bench + dashboard + TestNet | ⬜ | |
 | P7 Spec + docs | ⬜ | |
@@ -228,3 +228,50 @@
   the 105000 atomic units charged above from "accounted" to "on-chain
   claimed and swept to the receiver."
   **Risks:** none outstanding for P3 beyond the documented scope cuts.
+
+- 2026-09-11 — P4 complete — built `packages/settler`. `src/policies.ts`:
+  pure, chain-free decision functions (`isClaimEligible` -- on-withdraw
+  always wins over threshold/periodic, a channel with nothing unclaimed is
+  never eligible even mid-withdrawal; `shouldSettle`; `chunk` for batching;
+  `assertPollIntervalSafe`, the CLAUDE.md P4 startup assertion
+  `pollIntervalMs * 3 < withdrawDelayMs`, enforced in the `Settler`
+  constructor so a misconfigured settler fails at startup, not mid-run).
+  `src/settler.ts`: `Settler` class with `start()`/`stop()`/`tick()` --
+  `tick()` re-reads on-chain state via `escrow-client.getChannel` for every
+  channel in the shared `ChannelStorage` before deciding anything (no
+  trust in a possibly-stale mirror or in what a previous tick remembered),
+  batches eligible claims through `escrow-client.claimBatch` respecting the
+  box-reference cap (chunked conservatively at 4 rows by default, the
+  worst-case bound from P1's empirical finding), then sweeps any
+  (receiver, asset) pair with unsettled balance via `escrow-client.settle`.
+  Never overlaps ticks (`ticking` flag) and never mutates per-channel state
+  except `lastClaimedAtMs` on a *successful* claim -- a failed batch is
+  simply retried next tick against freshly-read on-chain state, matching
+  CLAUDE.md's "idempotent; re-read state before submit; survive restarts."
+  **Tests**: `test/policies.test.ts` (14 unit tests for the pure functions).
+  `test/settler.localnet.test.ts` -- **I8 on real LocalNet**: deploys a
+  fresh app, deposits real funds, signs a real voucher for 600,000 of a
+  1,000,000 deposit, seeds an in-memory `ChannelStorage` (standing in for
+  what a merchant's server scheme would have recorded), has the payer call
+  `initiate_withdraw` for the full balance, then drives `settler.tick()`
+  directly (not the timer) and confirms: the on-withdraw policy claims the
+  600,000 voucher regardless of threshold/periodic config being unset,
+  `settle()` sweeps it in the same tick, and after advancing the dev-mode
+  clock past the withdraw delay, `finalize_withdraw` returns exactly
+  `balance - totalClaimed` = 400,000 -- verified twice in a row for
+  stability. Combined workspace total after P4: 31 Python + 11 `core` + 1
+  `escrow-client` (real LocalNet) + 9 `x402-avm-batch` + 15 `settler`
+  (1 real LocalNet) = **67 tests, all green**.
+  **Deliberately out of scope this pass:** a periodic-interval timer demo
+  (the settler's `start()`/timer path is implemented and type-checked but
+  only `tick()` has been exercised directly; running it as a genuine
+  background loop against the P3 demo apps is a natural next integration
+  but wasn't required for I8); per-channel settle-amount reporting beyond
+  the `onSettle` callback (no persistent settler-side ledger of what it
+  has claimed/settled over time -- `lastClaimedAtMs` is in-memory only and
+  lost on restart, which is fine per spec since claims are idempotent and
+  re-derived from on-chain state, but would matter for audit/reporting).
+  **What's next:** P5 — the adversary suite (`packages/adversary`):
+  attack tests that must all be rejected by the contract and server, the
+  def-in-depth counterpart to everything built in P0-P4.
+  **Risks:** none outstanding for P4.
