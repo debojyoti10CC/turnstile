@@ -26,7 +26,7 @@ async function main() {
   const concurrency = Number(parseArg('concurrency', '1'));
   if (mode !== 'batch') throw new Error(`mode "${mode}" not supported by this demo (only "batch")`);
 
-  const algorand = AlgorandClient.defaultLocalNet();
+  const algorand = process.env.NETWORK === 'testnet' ? AlgorandClient.testNet() : AlgorandClient.defaultLocalNet();
   const payerAccount: algosdk.Account = { addr: algosdk.Address.fromString(PAYER_ADDRESS), sk: Buffer.from(PAYER_PRIVATE_KEY_B64, 'base64') };
   algorand.account.setSigner(PAYER_ADDRESS, algosdk.makeBasicAccountTransactionSigner(payerAccount));
 

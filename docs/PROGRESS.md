@@ -383,3 +383,37 @@
   latter needs a funded TestNet account from the user. P7 spec/docs
   polish remains after that.
   **Risks:** none outstanding for this benchmark pass.
+
+- **2026-09-12 — P6: TestNet deployment, verified live.** New
+  `contracts/scripts/deploy_testnet.py` (two-step, idempotent, never logs
+  secrets — see docs/DECISIONS.md) deployed the escrow app and a mock
+  6-decimal USDC-like ASA to Algorand TestNet once the generated deployer
+  address was funded with 10 ALGO from the public dispenser:
+  - App id `771555042`, asset id `771555032`, genesis
+    `SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe`.
+  - `apps/{demo-agent,demo-merchant,facilitator}` previously hardcoded
+    `AlgorandClient.defaultLocalNet()`; they now honor a `NETWORK` env var
+    (`testnet` | default `localnet`) — found and fixed while wiring this up,
+    since none of them actually had a TestNet path before.
+  Ran the real flow against it end-to-end (not just a deploy-script
+  success): facilitator + merchant started against TestNet, `demo-agent`
+  opened a channel and completed 3 real paid `/v1/infer` requests (one
+  on-chain deposit group — axfer + pay(MBR) + `deposit()` — then local
+  voucher signing for each request), then a direct `claimBatch()` +
+  `settle()` against the same app. Final on-chain state matched exactly:
+  balance 300,000, `totalClaimed` 3,600 after settle, agent-local
+  `chargedCumulativeAmount` 300 (atomic units) matching the last voucher.
+  Along the way, hit and fixed the same class of stale-suggested-params
+  issue noted elsewhere in this log, this time during the deploy script
+  itself (`TransactionPool.Remember: txn dead`, because real TestNet
+  rounds take ~2.8s, unlike LocalNet's instant dev-mode) — fixed by making
+  every deploy step idempotent (check on-chain state before acting) rather
+  than by disabling a cache, since a real-network deploy is exactly the
+  case where a step can legitimately half-succeed and need a safe rerun.
+  **What's next:** dashboard (React/Vite), then P7 spec/docs polish.
+  **Risks:** none outstanding for TestNet deployment. The settler
+  (`@turnstile/settler`) has no standalone long-running app yet — it's
+  exercised directly in its own LocalNet test (I8) and was driven manually
+  here via `claimBatch`/`settle` rather than its own process; running it
+  as a background service against TestNet is part of the still-pending
+  dashboard/ops work, not a correctness gap.
