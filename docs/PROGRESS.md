@@ -417,3 +417,24 @@
   here via `claimBatch`/`settle` rather than its own process; running it
   as a background service against TestNet is part of the still-pending
   dashboard/ops work, not a correctness gap.
+
+- **2026-09-12 — P6: dashboard built and verified in a real browser.**
+  New `apps/dashboard` (React 19 + Vite 8) polls three new read-only
+  `/debug/*` endpoints added to `apps/demo-merchant` (see docs/DECISIONS.md
+  for why it reuses the merchant's own storage rather than a separate
+  service): a channels table (deposit, charged, signed max, claimed,
+  exposure, withdraw countdown), the real `pnpm bench` results as both a
+  table and a fee-comparison bar chart, and the real `pnpm adversary`
+  report (24/24 pass). Every figure shown is either live server state or
+  a file one of this repo's own CLIs already wrote.
+  Verified live, not just "it builds": ran a fresh LocalNet deploy,
+  started the facilitator + merchant, drove 3 real batch-settlement
+  calls through `demo-agent`, started the dashboard's Vite dev server,
+  and loaded it in an actual browser — confirmed the channel row, the
+  real bench numbers, and the real adversary report all rendered
+  correctly with zero console errors.
+  **What's next:** P7 — finalize `docs/spec/scheme_batch_settlement_avm.md`
+  against what was actually built, and polish the top-level README
+  (60-second pitch, architecture diagram, quickstart, security model,
+  limitations).
+  **Risks:** none outstanding for the dashboard.

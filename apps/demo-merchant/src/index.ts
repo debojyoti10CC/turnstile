@@ -1,4 +1,7 @@
 import express from 'express';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import { HTTPFacilitatorClient } from '@x402/core/server';
 import { x402ResourceServer } from '@x402/core/server';
@@ -15,6 +18,19 @@ const RECEIVER_ADDRESS = process.env.RECEIVER_ADDRESS ?? '';
 const RECEIVER_AUTHORIZER_ADDRESS = process.env.RECEIVER_AUTHORIZER_ADDRESS ?? RECEIVER_ADDRESS;
 const FACILITATOR_URL = process.env.FACILITATOR_URL ?? 'http://localhost:4402';
 const WITHDRAW_DELAY = Number(process.env.WITHDRAW_DELAY ?? 900);
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, '../../../');
+const BENCH_PATH = path.join(repoRoot, 'apps/demo-agent/bench.json');
+const ADVERSARY_REPORT_PATH = path.join(repoRoot, 'packages/adversary/report.json');
+
+function readJsonIfExists(filePath: string): unknown {
+  try {
+    return JSON.parse(readFileSync(filePath, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
 
 async function main() {
   if (!APP_ID || ASSET_ID === '0' || !RECEIVER_ADDRESS) {
@@ -47,6 +63,13 @@ async function main() {
 
   const app = express();
   app.use(express.json());
+  app.use((req, res, next) => {
+    // Permissive CORS for the dashboard's dev server (different origin/port);
+    // this process only ever serves read-only debug data and payment-gated
+    // demo routes, nothing that needs origin restriction.
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+  });
   app.use((req, _res, next) => {
     console.log(`[demo-merchant] ${req.method} ${req.path} paid=${Boolean(req.headers['x-payment'] ?? req.headers['payment-signature'])}`);
     next();
@@ -82,6 +105,22 @@ async function main() {
     const channelId = typeof req.query.id === 'string' ? req.query.id : '';
     const channel = await scheme.getStorage().get(channelId);
     res.json(channel ?? null);
+  });
+
+  // Debug-only: feeds the dashboard (apps/dashboard) -- every field here is
+  // either live server state or a file this repo's own tooling wrote
+  // (pnpm bench / pnpm adversary), never synthesized for display.
+  app.get('/debug/channels', async (_req, res) => {
+    const channels = await scheme.getStorage().list();
+    res.json({ appId: APP_ID.toString(), network, withdrawDelaySeconds: WITHDRAW_DELAY, channels });
+  });
+
+  app.get('/debug/bench', (_req, res) => {
+    res.json(readJsonIfExists(BENCH_PATH));
+  });
+
+  app.get('/debug/adversary-report', (_req, res) => {
+    res.json(readJsonIfExists(ADVERSARY_REPORT_PATH));
   });
 
   app.get('/v1/data', (_req, res) => {
