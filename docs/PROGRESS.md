@@ -4,7 +4,7 @@
 |---|---|---|
 | Pre-work | ✅ | Contract compiles, 25 offline tests (incl. fuzz + TS parity), core lib + vectors, spec draft |
 | P0 Scaffold | ✅ | refs cloned, workspace installed, spec-notes written, localnet skip-guard added |
-| P1 Contract on LocalNet + escrow client | 🟡 | deploy script + 6 real-tx LocalNet invariant tests done; `packages/escrow-client` TS package not started |
+| P1 Contract on LocalNet + escrow client | ✅ | deploy script, 6 real-tx LocalNet invariant tests, `packages/escrow-client` (TS tx builders) all done and verified against real transactions |
 | P2 Plugin client + server | ⬜ | |
 | P3 Facilitator + demo apps | ⬜ | |
 | P4 Settler | ⬜ | |
@@ -80,3 +80,32 @@
   (5) `get_channel`/`open_mbr`/etc. (ARC-56 `readonly` methods) return
   `abi_return` as a plain `dict` keyed by struct field name, not a tuple —
   don't destructure positionally.
+
+- 2026-09-11 — P1 complete — built `packages/escrow-client` (TypeScript):
+  `boxes.ts` (channel/unsettled box-name builders), `fees.ts` (op-up extra
+  fee formula, claim-batch size constants), `client.ts` (ARC-56 `AppClient`
+  wrapper + config-to-ABI-tuple helper), `deposit.ts`, `claim.ts`,
+  `settle.ts`, `refund.ts`, `withdraw.ts` (initiate/finalize), `channel.ts`
+  (direct box read + ARC-4 decode, with a readonly-call fallback view).
+  `test/localnet.test.ts` runs the full deposit → claim → settle → refund →
+  initiateWithdraw → finalizeWithdraw lifecycle against a live LocalNet node
+  (bootstrapped by shelling out to the already-proven `deploy.py` rather than
+  re-solving `AppFactory.deploy()` in TS too) — passed 3 consecutive runs.
+  Combined suite: Python 31/31, `@turnstile/core` 11/11,
+  `@turnstile/escrow-client` 1/1 (real on-chain), `tsc --noEmit` clean.
+  **Correction to a P1-partial risk note:** the JS/TS `algokit-utils` v9.2.2
+  `AppClient.send.call()` does *not* auto-route ARC-56 `readonly` methods
+  through simulate the way Python's v4.2.3 does — every box-touching call
+  (including `open_mbr`, `get_channel`) needs explicit `boxReferences` in TS,
+  with no readonly exception. Also corrected `MAX_CLAIM_ROWS_PER_CALL`:
+  empirical probing (n=4..30) found the real limiter is
+  `MAX_APP_CALL_FOREIGN_REFERENCES`=8 box refs, not opcode-budget op-ups as
+  CLAUDE.md §7's formula assumed — n=7 (same receiver) succeeds, n=8 fails
+  with algod's literal `tx.Boxes too long, max number of box references is
+  8`. Exported both the same-receiver bound (7) and the worst-case
+  every-row-different-receiver bound (4); `claimBatch()` checks the exact
+  box count rather than trusting either constant blindly. Full reasoning in
+  `docs/DECISIONS.md`.
+  **What's next:** P2 — `packages/x402-avm-batch` (client + server scheme
+  implementations mirroring `.refs/x402`'s EVM batch-settlement file layout).
+  **Risks:** none outstanding for P1.

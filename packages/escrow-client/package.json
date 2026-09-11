@@ -1,0 +1,21 @@
+{
+  "name": "@turnstile/escrow-client",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@turnstile/core": "workspace:*",
+    "algosdk": "^3.7.0",
+    "@algorandfoundation/algokit-utils": "^9.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
