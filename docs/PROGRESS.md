@@ -8,7 +8,7 @@
 | P2 Plugin client + server | 🟡 | core verify/charge path + client scheme done and tested (scoped per DECISIONS.md); facilitator package, full corrective-402 wire plumbing through real @x402/core HTTP stack, and file/SQLite storage backends not yet built |
 | P3 Facilitator + demo apps | ✅ | facilitator, demo-merchant, demo-agent all built and run for real on LocalNet: 200/200 dynamic-priced calls through one channel, agent/merchant state agree exactly |
 | P4 Settler | ✅ | threshold/periodic/on-withdraw claim policies + settle, verified against real LocalNet (I8) |
-| P5 Adversary | ⬜ | |
+| P5 Adversary | ✅ | 24/24 attacks correctly rejected (18 contract + 5 server + 500-step fuzz), real LocalNet, found and fixed one real gap |
 | P6 Bench + dashboard + TestNet | ⬜ | |
 | P7 Spec + docs | ⬜ | |
 
@@ -275,3 +275,68 @@
   attack tests that must all be rejected by the contract and server, the
   def-in-depth counterpart to everything built in P0-P4.
   **Risks:** none outstanding for P4.
+
+- 2026-09-11 — P5 complete — built `packages/adversary`. `src/world.ts`:
+  shared LocalNet bootstrap (reuses `contracts/scripts/deploy.py`, same
+  pattern as every other package's real-node tests) plus `maliciousDeposit`,
+  a deposit builder that -- unlike `@turnstile/escrow-client`'s safe
+  `deposit()` -- lets every field (rekey, close-to, clawback, wrong sender/
+  receiver/asset) be overridden, since this package's entire job is
+  submitting transactions the safe builder would never construct.
+  `src/contractAttacks.ts`: 18 attacks against the real deployed contract --
+  replay of a lower voucher after a higher claim, cross-channel voucher
+  reuse, wrong app id/genesis in the signed message, bit-flipped signature,
+  wrong signer, max-claimable-over-balance, total-over-signed-max,
+  non-receiver claim/refund, non-payer withdraw, early finalize, five
+  malicious deposit-group variants (rekey/close-to/clawback/wrong-receiver/
+  sender-not-payer), and drain+refund+re-fund+replay (the box-never-deleted
+  invariant, I6). `src/serverAttacks.ts`: 5 attacks against
+  `BatchSettlementChannelManager`/`BatchSettlementAvmClientScheme` directly
+  (in-process, no chain needed) -- stale voucher, charge exceeding signed
+  headroom, voucher above mirrored balance, voucher submitted once a pending
+  withdrawal is within its safety margin, and a forged corrective-402 state
+  that the client must reject via its own signature check (I11).
+  `src/fuzz.ts`: 500 random deposit/claim/stale-claim/refund/settle steps
+  against real LocalNet, asserting I1/I2/I3 after every step (see
+  docs/DECISIONS.md for why withdraw/finalize are out of this particular
+  op mix). `src/report.ts` + `src/main.ts`: the harness (`expectRejected`/
+  `expectFalsy` helpers, so "the call threw" and "the call succeeded but
+  had no effect" are both legitimate ways to pass) writing
+  `packages/adversary/report.json` and exiting non-zero on any accepted
+  attack.
+  **Real run, not simulated:** `pnpm adversary` against a live LocalNet --
+  **24/24 attacks correctly rejected**, full run (18 contract attacks + 5
+  server attacks + 500-step fuzz) completes in ~35-40 seconds.
+  **One real gap found and fixed by this suite, not before it:**
+  `BatchSettlementChannelManager.verifyVoucher` had no check at all for a
+  pending withdrawal -- it would keep accepting (and charging for) new
+  vouchers on a channel whose payer had already signaled intent to exit.
+  Not a fund-safety bug (the contract's own `finalize_withdraw` already
+  bounds payer losses), but exactly the "voucher during withdraw window
+  past safety margin" rejection CLAUDE.md's P5 attack list calls for.
+  Fixed: a configurable `withdrawSafetyMarginSec` (default 60s) now rejects
+  new vouchers once a pending withdrawal is within that margin of becoming
+  finalizable, using the pre-existing (previously unused) `ERR.withdrawPending`
+  code. Also hit and fixed a harness-only issue along the way: firing
+  structurally-identical transactions back-to-back (e.g. repeated bare
+  `settle()` calls) collided on txid under algokit-utils' default
+  suggested-params cache; disabling that cache for this package's bootstrap
+  fixed it (2/24 attacks failed with `TransactionPool.Remember: transaction
+  already in ledger` before the fix, 24/24 after).
+  **Deliberately out of scope this pass** (see docs/DECISIONS.md): a
+  "malicious deposit group for fee payer" attack (extra txn / fee-over-cap /
+  rekey-in-any-txn / wrong app-id-or-method) -- not applicable under this
+  project's current deposit-submission model, where the client/agent submits
+  its own deposit directly with its own keys rather than handing a
+  partially-signed group to a facilitator that co-signs as fee payer (see
+  the P3 decision on this); a "top-up with mismatched config" attack --
+  channel id is a hash of the full config, so this is a hash-collision
+  attempt, not a reachable code path worth a dedicated test.
+  Combined workspace total after P5: 31 Python + 11 `core` + 1
+  `escrow-client` + 9 `x402-avm-batch` + 15 `settler` = 67 automated tests,
+  plus the adversary suite's 24/24, all green.
+  **What's next:** P6 — benchmark, dashboard, and TestNet deployment.
+  TestNet deployment needs a funded account the user must provide or
+  approve funding for; benchmark and dashboard can proceed on LocalNet
+  first.
+  **Risks:** none outstanding for P5.

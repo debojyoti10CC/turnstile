@@ -17,6 +17,9 @@ export interface OnchainMirror {
   withdrawRequestedAt: number;
 }
 
+/** Seconds; current wall time passed in separately so tests can fake "now" without faking the system clock. */
+export type NowSeconds = () => number;
+
 /** Reads authoritative on-chain channel state; used for cold-start and mirror refresh. */
 export type FetchOnchainChannel = (channelId: Uint8Array) => Promise<OnchainMirror | undefined>;
 
@@ -26,6 +29,18 @@ export interface ChannelManagerConfig {
   fetchOnchain: FetchOnchainChannel;
   /** Re-fetch on-chain state when the local mirror is older than this (ms). */
   onchainMirrorTtlMs?: number;
+  /**
+   * Stop accepting new vouchers this many seconds before a pending
+   * withdrawal's delay elapses, even though the channel is technically
+   * still chargeable on-chain until that instant. Without this margin a
+   * voucher signed (and a handler run) right at the edge of the window
+   * could still be racing finalize_withdraw when it reaches settle --
+   * not a fund-safety issue (finalize_withdraw only ever sweeps the
+   * *unclaimed* remainder) but a availability one: a request that should
+   * have been rejected outright, worth surfacing explicitly. Default 60s.
+   */
+  withdrawSafetyMarginSec?: number;
+  now?: NowSeconds;
 }
 
 export type VerifyVoucherError =
@@ -33,7 +48,8 @@ export type VerifyVoucherError =
   | typeof ERR.voucherSignature
   | typeof ERR.cumulativeBelowClaimed
   | typeof ERR.cumulativeExceedsBalance
-  | typeof ERR.channelNotFound;
+  | typeof ERR.channelNotFound
+  | typeof ERR.withdrawPending;
 
 export type ChargeError = typeof ERR.chargeExceedsSigned | typeof ERR.cumulativeExceedsBalance | typeof ERR.channelNotFound;
 
@@ -56,12 +72,16 @@ export class BatchSettlementChannelManager {
   private readonly deployment: Deployment;
   private readonly fetchOnchain: FetchOnchainChannel;
   private readonly onchainMirrorTtlMs: number;
+  private readonly withdrawSafetyMarginSec: number;
+  private readonly now: NowSeconds;
 
   constructor(config: ChannelManagerConfig) {
     this.storage = config.storage;
     this.deployment = config.deployment;
     this.fetchOnchain = config.fetchOnchain;
     this.onchainMirrorTtlMs = config.onchainMirrorTtlMs ?? 30_000;
+    this.withdrawSafetyMarginSec = config.withdrawSafetyMarginSec ?? 60;
+    this.now = config.now ?? (() => Math.floor(Date.now() / 1000));
   }
 
   /**
@@ -84,6 +104,18 @@ export class BatchSettlementChannelManager {
     channel = await this.ensureFreshMirror(expectedChannelId, expectedChannelIdB64, configWire, channel);
     if (!channel) {
       return { ok: false, error: ERR.channelNotFound, message: 'channel does not exist on-chain' };
+    }
+
+    if (channel.withdrawRequestedAt > 0) {
+      const withdrawDelaySec = Number(configWire.withdrawDelay);
+      const finalizableAt = channel.withdrawRequestedAt + withdrawDelaySec;
+      if (this.now() >= finalizableAt - this.withdrawSafetyMarginSec) {
+        return {
+          ok: false,
+          error: ERR.withdrawPending,
+          message: 'a withdrawal is pending and within the safety margin of becoming finalizable; no new charges accepted',
+        };
+      }
     }
 
     const payerAuthorizerPk = decodeAddress(configWire.payerAuthorizer);

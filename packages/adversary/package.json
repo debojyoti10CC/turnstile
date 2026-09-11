@@ -1,0 +1,23 @@
+{
+  "name": "@turnstile/adversary",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "dev": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@turnstile/core": "workspace:*",
+    "@turnstile/escrow-client": "workspace:*",
+    "@turnstile/x402-avm-batch": "workspace:*",
+    "algosdk": "^3.7.0"
+  },
+  "devDependencies": {
+    "@algorandfoundation/algokit-utils": "^9.2.2",
+    "@types/node": "^22.20.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
