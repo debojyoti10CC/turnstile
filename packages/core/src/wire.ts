@@ -1,8 +1,12 @@
 /**
  * x402 v2 wire types for batch-settlement on AVM. Names mirror the EVM/SVM bindings
  * (scheme_batch_settlement_evm.md / _svm.md). Amounts are decimal strings on the wire.
- * Headers: PAYMENT-REQUIRED (402), PAYMENT-SIGNATURE (request), PAYMENT-RESPONSE (response).
+ * Per @x402/core's actual HTTP client (see docs/spec-notes.md): the 402 body is plain
+ * JSON (no special header), the request carries `X-PAYMENT`, and the server replies
+ * with `X-PAYMENT-RESPONSE`.
  */
+import { channelId as computeChannelId, type ChannelConfig, type Deployment } from './config.js';
+import { toB64, fromB64 } from './bytes.js';
 export interface AvmBatchExtra {
   appId: string;               // escrow application id (canonical per network, client MUST verify)
   receiverAuthorizer: string;
@@ -30,11 +34,41 @@ export interface ChannelConfigWire {
 
 export interface VoucherWire { channelId: string; maxClaimableAmount: string; signature: string } // b64
 
+export function configToWire(c: ChannelConfig): ChannelConfigWire {
+  return {
+    payer: c.payer, payerAuthorizer: c.payerAuthorizer, receiver: c.receiver,
+    receiverAuthorizer: c.receiverAuthorizer, asset: c.asset.toString(),
+    withdrawDelay: Number(c.withdrawDelay), salt: toB64(c.salt),
+  };
+}
+
+export function configFromWire(w: ChannelConfigWire): ChannelConfig {
+  return {
+    payer: w.payer, payerAuthorizer: w.payerAuthorizer, receiver: w.receiver,
+    receiverAuthorizer: w.receiverAuthorizer, asset: BigInt(w.asset),
+    withdrawDelay: BigInt(w.withdrawDelay), salt: fromB64(w.salt),
+  };
+}
+
+export function channelIdFromWire(w: ChannelConfigWire, d: Deployment): Uint8Array {
+  return computeChannelId(configFromWire(w), d);
+}
+
 export type AvmBatchPayload =
   | { type: 'deposit'; channelConfig: ChannelConfigWire; voucher: VoucherWire;
       deposit: { amount: string; paymentGroup: string[] } } // b64 msgpack signed/unsigned txns
   | { type: 'voucher'; channelConfig: ChannelConfigWire; voucher: VoucherWire }
   | { type: 'refund'; channelConfig: ChannelConfigWire; voucher: VoucherWire; amount?: string };
+
+export function isDepositPayload(p: AvmBatchPayload): p is Extract<AvmBatchPayload, { type: 'deposit' }> {
+  return p.type === 'deposit';
+}
+export function isVoucherPayload(p: AvmBatchPayload): p is Extract<AvmBatchPayload, { type: 'voucher' }> {
+  return p.type === 'voucher';
+}
+export function isRefundPayload(p: AvmBatchPayload): p is Extract<AvmBatchPayload, { type: 'refund' }> {
+  return p.type === 'refund';
+}
 
 export interface ChannelStateWire {
   channelId: string; balance: string; totalClaimed: string;

@@ -5,7 +5,7 @@
 | Pre-work | ✅ | Contract compiles, 25 offline tests (incl. fuzz + TS parity), core lib + vectors, spec draft |
 | P0 Scaffold | ✅ | refs cloned, workspace installed, spec-notes written, localnet skip-guard added |
 | P1 Contract on LocalNet + escrow client | ✅ | deploy script, 6 real-tx LocalNet invariant tests, `packages/escrow-client` (TS tx builders) all done and verified against real transactions |
-| P2 Plugin client + server | ⬜ | |
+| P2 Plugin client + server | 🟡 | core verify/charge path + client scheme done and tested (scoped per DECISIONS.md); facilitator package, full corrective-402 wire plumbing through real @x402/core HTTP stack, and file/SQLite storage backends not yet built |
 | P3 Facilitator + demo apps | ⬜ | |
 | P4 Settler | ⬜ | |
 | P5 Adversary | ⬜ | |
@@ -106,6 +106,64 @@
   every-row-different-receiver bound (4); `claimBatch()` checks the exact
   box count rather than trusting either constant blindly. Full reasoning in
   `docs/DECISIONS.md`.
-  **What's next:** P2 — `packages/x402-avm-batch` (client + server scheme
-  implementations mirroring `.refs/x402`'s EVM batch-settlement file layout).
   **Risks:** none outstanding for P1.
+
+- 2026-09-11 — P2 (scoped) — built `packages/x402-avm-batch`. Added to
+  `@turnstile/core/wire.ts`: `configToWire`/`configFromWire`/
+  `channelIdFromWire` converters and `isDepositPayload`/`isVoucherPayload`/
+  `isRefundPayload` type guards (needed by both client and server, belong in
+  core alongside the types they discriminate).
+  **Server**: `server/storage.ts` (`ChannelStorage` + `InMemoryChannelStorage`,
+  per-channel async-lock pattern mirrored from the EVM reference almost
+  verbatim -- it was already exactly right for I12). `server/channelManager.ts`:
+  `verifyVoucher()` (channelId binding, ed25519 signature check, I4/I9 bound
+  checks against the mirrored on-chain balance, cold-start recovery via an
+  injected `fetchOnchain`) and `charge()` (atomic commit, I9's
+  never-exceed-signed-max and never-exceed-balance checks, doubles as I12's
+  serialization point). `server/scheme.ts`: `BatchSettlementAvmScheme`
+  implementing `SchemeNetworkServer` (`parsePrice`, `getAssetDecimals`,
+  `enhancePaymentRequirements`, `enrichPaymentRequiredResponse` for
+  corrective-402, and `schemeHooks` wiring verify/settle to the channel
+  manager).
+  **Client**: `client/storage.ts` (`ClientChannelStorage` +
+  `InMemoryClientChannelStorage`). `client/scheme.ts`:
+  `BatchSettlementAvmClientScheme` implementing `SchemeNetworkClient` --
+  `createPaymentPayload` builds a fresh deposit payload on cold start
+  (delegating real transaction construction to an injected
+  `buildDepositGroup`, keeping the scheme itself unit-testable without a live
+  node/signer) or a steady-state voucher payload otherwise; `onPaymentResponse`
+  commits confirmed charges and, on a corrective 402, verifies the
+  server-reported voucher's signature against the client's **own** public key
+  before adopting any of the server's claimed state (I11) -- a server cannot
+  forge a signature under a key it doesn't hold, so a verifying signature is
+  proof the client itself produced it.
+  **Tests**: `test/channelManager.test.ts` (5 tests: I4 channel-id binding,
+  I9 signature/balance/signed-max bounds, I12 — 50 concurrent charges on one
+  channel settle to exactly the expected total with no over-accept).
+  `test/e2e.test.ts` (4 tests, in-process, driving our own `schemeHooks` in
+  the sequence `@x402/core`'s resource server would call them): cold-start +
+  flat pricing, dynamic pricing (server charges the handler-determined actual,
+  never the pre-authorized ceiling), corrective-402 end-to-end (client
+  recovers from a stale local voucher via the verified corrective state and
+  a retry succeeds), and 50 concurrent requests on one channel. Combined
+  workspace total: 31 Python + 11 `core` + 1 `escrow-client` (real LocalNet)
+  + 9 `x402-avm-batch` = 52 tests, all green; `tsc --noEmit` clean on all
+  three TS packages.
+  **Deliberately out of scope this pass** (see docs/DECISIONS.md for the
+  reasoning): the EVM reference's pending-request TTL reservation system and
+  its auto claim/settle/refund interval runner (that belongs to
+  `packages/settler`, P4); a file/SQLite `ChannelStorage` backend (only
+  in-memory exists so far); wiring through the real `@x402/core`
+  `x402ResourceServer`/`x402Client`/`HTTPFacilitatorClient` HTTP stack (the
+  E2E test drives our hooks directly instead); a facilitator package
+  (`packages/x402-avm-batch/src/facilitator`, P3's `/verify`/`/settle`
+  surface) -- deposit-group submission and real claim/settle transactions are
+  not wired into this scheme yet, only the per-request accounting path is.
+  **What's next:** P3 — facilitator + demo apps, which is also where the
+  deposit-submission and corrective-402-over-real-HTTP gaps above will need
+  to close for an actual demo to run end-to-end.
+  **Risks:** the scope cuts above are real gaps, not polish items -- P3
+  cannot produce a working demo merchant/agent without at least a minimal
+  facilitator (to submit deposit groups and later claim/settle) and without
+  connecting this scheme to `@x402/express`/`@x402/fetch`'s actual HTTP
+  plumbing, which hasn't been exercised against this code yet.
