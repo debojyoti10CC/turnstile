@@ -340,3 +340,46 @@
   approve funding for; benchmark and dashboard can proceed on LocalNet
   first.
   **Risks:** none outstanding for P5.
+
+- **2026-09-12 — P6 (partial): SDK packaging hardening + real benchmark.**
+  SDK/devtooling: all four publishable packages (`core`, `escrow-client`,
+  `x402-avm-batch`, `settler`) now declare an explicit `exports` map and a
+  `files: ["dist"]` allowlist (see docs/DECISIONS.md), and each has a
+  README documenting its public surface and a usage example. Rebuilt and
+  re-ran the full suite afterward — no regressions.
+
+  Benchmark: `pnpm bench` (`apps/demo-agent/src/bench.ts`) runs N in
+  {50, 200, 1000} against real LocalNet, comparing batch-settlement to a
+  naive one-real-transaction-per-call baseline ("exact" — see
+  docs/DECISIONS.md for why it's naive and not `@x402/avm`'s actual
+  facilitator). First full run surfaced a real bug, not a bench artifact:
+  at N=1000 the batch leg only completed 250/1000 calls before every
+  subsequent request failed `invalid_batch_settlement_avm_cumulative_exceeds_balance`,
+  because every voucher reserves the route's full advertised price
+  *ceiling* against the deposit regardless of actual usage, and the
+  bench's deposit-sizing formula didn't scale with call count. Fixed (see
+  docs/DECISIONS.md) and reran; final real numbers (`apps/demo-agent/bench.json`):
+
+  | N | mode | wall time | p50 / p95 added latency | on-chain txns | network fees | one-time MBR |
+  |---|---|---|---|---|---|---|
+  | 50 | batch | 1309 ms | 18 / 29 ms | 3 | 3,000 µALGO | 121,000 µALGO |
+  | 50 | exact | 1893 ms | 36 / 76 ms | 50 | 50,000 µALGO | 0 |
+  | 200 | batch | 1942 ms | 9 / 12 ms | 3 | 3,000 µALGO | 121,000 µALGO |
+  | 200 | exact | 4396 ms | 22 / 35 ms | 200 | 200,000 µALGO | 0 |
+  | 1000 | batch | 8214 ms | 8 / 10 ms | 3 | 3,000 µALGO | 121,000 µALGO |
+  | 1000 | exact | 22149 ms | 17 / 41 ms | 1000 | 1,000,000 µALGO | 0 |
+
+  All six runs: 0 failures. The headline result: batch-settlement's
+  on-chain transaction count and network fees are **flat at 3 txns /
+  3,000 µALGO regardless of N** (the deposit group — claim/settle are
+  deferred, amortized accounting handled later by the settler, not a
+  per-request cost), versus exact's linear `N` txns and `N × 1,000`
+  µALGO — a 333x fee reduction at N=1000 (excluding the one-time,
+  refundable 121,000 µALGO box-storage MBR, which is paid once per
+  channel, not per request, and is not a fee). Per-request added latency
+  is also consistently lower for batch (signing + local voucher
+  verification) than exact (waiting on a real per-call txn confirmation).
+  **What's next:** dashboard (React/Vite) and TestNet deployment — the
+  latter needs a funded TestNet account from the user. P7 spec/docs
+  polish remains after that.
+  **Risks:** none outstanding for this benchmark pass.

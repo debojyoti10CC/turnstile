@@ -9,4 +9,5 @@ __pycache__/
 .pytest_cache/
 contracts/.venv/
 apps/demo-agent/bench.json
+apps/demo-agent/bench-*.log
 packages/adversary/report.json
