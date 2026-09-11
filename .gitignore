@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.refs/
+.env
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+__pycache__/
+.pytest_cache/
+contracts/.venv/
+apps/demo-agent/bench.json
+packages/adversary/report.json

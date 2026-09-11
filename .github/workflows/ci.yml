@@ -1,0 +1,21 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pipx install algokit
+      - run: pip install -r contracts/requirements.txt
+      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm contracts:build
+      - run: pnpm contracts:test
+      - run: pnpm build && pnpm test
+      - run: algokit localnet start
+      - run: pnpm contracts:localnet
+      - run: pnpm adversary

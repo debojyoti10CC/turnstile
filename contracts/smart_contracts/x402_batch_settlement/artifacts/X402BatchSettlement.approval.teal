@@ -1,0 +1,1474 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 1 0 176 32 184 128 136
+    bytecblock 0x151f7c75 0x63 0x75 "" 0x068101
+    // smart_contracts/x402_batch_settlement/contract.py:84
+    // class X402BatchSettlement(ARC4Contract):
+    txn NumAppArgs
+    bz main___algopy_default_create@21
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    assert
+    pushbytess 0x00134a11 0x2d7d4354 0x830043c6 0x995276cc 0xdc56d977 0xee6ad93c 0xb7adf26f 0xe4f788f7 0x9f53bcda 0x1ab8841f 0x6461cc89 0xa313ddb1 // method "opt_in_asset(uint64,pay)void", method "channel_id((address,address,address,address,uint64,uint64,byte[32]))byte[32]", method "voucher_message(byte[32],uint64)byte[]", method "get_channel(byte[32])(uint64,uint64,uint64,uint64)", method "get_unsettled(address,uint64)uint64", method "open_mbr((address,address,address,address,uint64,uint64,byte[32]))uint64", method "deposit((address,address,address,address,uint64,uint64,byte[32]),axfer,pay)byte[32]", method "claim((byte[32],uint64,byte[64],uint64)[])uint64", method "settle(address,uint64)uint64", method "refund(byte[32],uint64)uint64", method "initiate_withdraw(byte[32],uint64)uint64", method "finalize_withdraw(byte[32])uint64"
+    txna ApplicationArgs 0
+    match opt_in_asset channel_id voucher_message get_channel get_unsettled open_mbr deposit claim settle refund initiate_withdraw finalize_withdraw
+    err
+
+main___algopy_default_create@21:
+    txn OnCompletion
+    !
+    txn ApplicationID
+    !
+    &&
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.opt_in_asset[routing]() -> void:
+opt_in_asset:
+    // smart_contracts/x402_batch_settlement/contract.py:89-90
+    // # ------------------------------------------------------------------ setup
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // smart_contracts/x402_batch_settlement/contract.py:93
+    // assert not Global.current_application_address.is_opted_in(asset), "already opted in"
+    global CurrentApplicationAddress
+    dig 2
+    asset_holding_get AssetBalance
+    bury 1
+    !
+    assert // already opted in
+    // smart_contracts/x402_batch_settlement/contract.py:94
+    // assert mbr.receiver == Global.current_application_address, "mbr receiver"
+    dup
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert // mbr receiver
+    // smart_contracts/x402_batch_settlement/contract.py:95
+    // assert mbr.amount >= ASSET_OPT_IN_MBR, "mbr amount"
+    gtxns Amount
+    pushint 100000
+    >=
+    assert // mbr amount
+    // smart_contracts/x402_batch_settlement/contract.py:96-101
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_receiver=Global.current_application_address,
+    //     asset_amount=0,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/x402_batch_settlement/contract.py:98
+    // asset_receiver=Global.current_application_address,
+    global CurrentApplicationAddress
+    // smart_contracts/x402_batch_settlement/contract.py:99
+    // asset_amount=0,
+    intc_1 // 0
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/x402_batch_settlement/contract.py:96
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // smart_contracts/x402_batch_settlement/contract.py:100
+    // fee=0,
+    intc_1 // 0
+    itxn_field Fee
+    // smart_contracts/x402_batch_settlement/contract.py:96-101
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset,
+    //     asset_receiver=Global.current_application_address,
+    //     asset_amount=0,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // smart_contracts/x402_batch_settlement/contract.py:89-90
+    // # ------------------------------------------------------------------ setup
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.channel_id[routing]() -> void:
+channel_id:
+    // smart_contracts/x402_batch_settlement/contract.py:103-104
+    // # --------------------------------------------------------------- views
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 176
+    ==
+    assert // invalid number of bytes for smart_contracts.x402_batch_settlement.contract.ChannelConfig
+    // smart_contracts/x402_batch_settlement/contract.py:106
+    // return Bytes32.from_bytes(self._channel_id(config))
+    callsub _channel_id
+    pop
+    // smart_contracts/x402_batch_settlement/contract.py:103-104
+    // # --------------------------------------------------------------- views
+    // @arc4.abimethod(readonly=True)
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.voucher_message[routing]() -> void:
+voucher_message:
+    // smart_contracts/x402_batch_settlement/contract.py:108
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // smart_contracts/x402_batch_settlement/contract.py:110
+    // return arc4.DynamicBytes(self._voucher_message(channel_id.bytes, max_claimable.as_uint64()))
+    btoi
+    callsub _voucher_message
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:108
+    // @arc4.abimethod(readonly=True)
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.get_channel[routing]() -> void:
+get_channel:
+    // smart_contracts/x402_batch_settlement/contract.py:112
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // smart_contracts/x402_batch_settlement/contract.py:114
+    // st = self.channels[channel_id.bytes].copy()
+    bytec_1 // 0x63
+    swap
+    concat
+    box_get
+    assert // check self.channels entry exists
+    // smart_contracts/x402_batch_settlement/contract.py:116
+    // balance=st.balance,
+    dup
+    extract 176 8
+    // smart_contracts/x402_batch_settlement/contract.py:117
+    // total_claimed=st.total_claimed,
+    dig 1
+    extract 184 8
+    // smart_contracts/x402_batch_settlement/contract.py:118
+    // withdraw_requested_at=st.withdraw_requested_at,
+    dig 2
+    extract 192 8
+    // smart_contracts/x402_batch_settlement/contract.py:119
+    // withdraw_amount=st.withdraw_amount,
+    uncover 3
+    extract 200 8
+    // smart_contracts/x402_batch_settlement/contract.py:115-120
+    // return ChannelView(
+    //     balance=st.balance,
+    //     total_claimed=st.total_claimed,
+    //     withdraw_requested_at=st.withdraw_requested_at,
+    //     withdraw_amount=st.withdraw_amount,
+    // )
+    uncover 3
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:112
+    // @arc4.abimethod(readonly=True)
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.get_unsettled[routing]() -> void:
+get_unsettled:
+    // smart_contracts/x402_batch_settlement/contract.py:122
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // smart_contracts/x402_batch_settlement/contract.py:297
+    // return receiver.bytes + op.itob(asset.id)
+    itob
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:124
+    // return self.unsettled.get(self._unsettled_key(receiver, asset), default=UInt64(0))
+    bytec_2 // 0x75
+    swap
+    concat
+    box_get
+    swap
+    btoi
+    intc_1 // 0
+    swap
+    uncover 2
+    select
+    // smart_contracts/x402_batch_settlement/contract.py:122
+    // @arc4.abimethod(readonly=True)
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.open_mbr[routing]() -> void:
+open_mbr:
+    // smart_contracts/x402_batch_settlement/contract.py:126
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 176
+    ==
+    assert // invalid number of bytes for smart_contracts.x402_batch_settlement.contract.ChannelConfig
+    // smart_contracts/x402_batch_settlement/contract.py:128
+    // return self._open_mbr(config)
+    callsub _open_mbr
+    pop
+    // smart_contracts/x402_batch_settlement/contract.py:126
+    // @arc4.abimethod(readonly=True)
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.deposit[routing]() -> void:
+deposit:
+    intc_1 // 0
+    dup
+    bytec_3 // ""
+    // smart_contracts/x402_batch_settlement/contract.py:130-131
+    // # ------------------------------------------------------------- deposits
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 176
+    ==
+    assert // invalid number of bytes for smart_contracts.x402_batch_settlement.contract.ChannelConfig
+    txn GroupIndex
+    pushint 2
+    -
+    dup
+    gtxns TypeEnum
+    pushint 4 // axfer
+    ==
+    assert // transaction type is axfer
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // smart_contracts/x402_batch_settlement/contract.py:145
+    // cid = self._channel_id(config)
+    uncover 2
+    callsub _channel_id
+    swap
+    dup
+    cover 4
+    cover 4
+    // smart_contracts/x402_batch_settlement/contract.py:312
+    // assert xfer.xfer_asset.id == config.asset.as_uint64(), "asset mismatch"
+    dig 2
+    gtxns XferAsset
+    dig 1
+    intc 5 // 128
+    extract_uint64
+    ==
+    assert // asset mismatch
+    // smart_contracts/x402_batch_settlement/contract.py:313
+    // assert xfer.asset_receiver == Global.current_application_address, "xfer receiver"
+    dig 2
+    gtxns AssetReceiver
+    global CurrentApplicationAddress
+    ==
+    assert // xfer receiver
+    // smart_contracts/x402_batch_settlement/contract.py:314
+    // assert xfer.sender == config.payer.native, "xfer sender != payer"
+    dig 2
+    gtxns Sender
+    dig 1
+    extract 0 32
+    ==
+    assert // xfer sender != payer
+    // smart_contracts/x402_batch_settlement/contract.py:315
+    // assert xfer.asset_amount > 0, "zero deposit"
+    dig 2
+    gtxns AssetAmount
+    dup
+    cover 6
+    assert // zero deposit
+    // smart_contracts/x402_batch_settlement/contract.py:316
+    // assert xfer.asset_close_to == Global.zero_address, "close_to set"
+    dig 2
+    gtxns AssetCloseTo
+    global ZeroAddress
+    ==
+    assert // close_to set
+    // smart_contracts/x402_batch_settlement/contract.py:317
+    // assert xfer.rekey_to == Global.zero_address, "rekey set"
+    dig 2
+    gtxns RekeyTo
+    global ZeroAddress
+    ==
+    assert // rekey set
+    // smart_contracts/x402_batch_settlement/contract.py:318
+    // assert xfer.asset_sender == Global.zero_address, "clawback not allowed"
+    uncover 2
+    gtxns AssetSender
+    global ZeroAddress
+    ==
+    assert // clawback not allowed
+    // smart_contracts/x402_batch_settlement/contract.py:147
+    // assert mbr.receiver == Global.current_application_address, "mbr receiver"
+    dig 1
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert // mbr receiver
+    // smart_contracts/x402_batch_settlement/contract.py:148
+    // assert mbr.amount >= self._open_mbr(config), "mbr amount"
+    swap
+    gtxns Amount
+    swap
+    callsub _open_mbr
+    cover 3
+    >=
+    assert // mbr amount
+    // smart_contracts/x402_batch_settlement/contract.py:150
+    // if cid in self.channels:
+    bytec_1 // 0x63
+    swap
+    concat
+    dup
+    cover 2
+    box_len
+    bury 1
+    bz deposit_else_body@3
+    // smart_contracts/x402_batch_settlement/contract.py:151
+    // st = self.channels[cid].copy()
+    swap
+    dup
+    box_get
+    assert // check self.channels entry exists
+    // smart_contracts/x402_batch_settlement/contract.py:152
+    // assert st.config == config, "config mismatch"
+    dup
+    extract 0 176
+    uncover 3
+    ==
+    assert // config mismatch
+    // smart_contracts/x402_batch_settlement/contract.py:153
+    // st.balance = arc4.UInt64(st.balance.as_uint64() + xfer.asset_amount)
+    intc_2 // 176
+    extract_uint64
+    uncover 3
+    +
+    itob
+    // smart_contracts/x402_batch_settlement/contract.py:153-154
+    // st.balance = arc4.UInt64(st.balance.as_uint64() + xfer.asset_amount)
+    // self.channels[cid] = st.copy()
+    intc_2 // 176
+    swap
+    box_replace // on error: index out of bounds
+
+deposit_after_if_else@10:
+    // smart_contracts/x402_batch_settlement/contract.py:130-131
+    // # ------------------------------------------------------------- deposits
+    // @arc4.abimethod
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+deposit_else_body@3:
+    // smart_contracts/x402_batch_settlement/contract.py:156
+    // delay = config.withdraw_delay.as_uint64()
+    dup
+    intc 6 // 136
+    extract_uint64
+    dup
+    bury 6
+    // smart_contracts/x402_batch_settlement/contract.py:157
+    // assert delay >= MIN_WITHDRAW_DELAY and delay <= MAX_WITHDRAW_DELAY, "withdraw delay range"
+    pushint 900
+    >=
+    bz deposit_bool_false@6
+    dig 4
+    pushint 2592000
+    <=
+    bz deposit_bool_false@6
+    intc_0 // 1
+
+deposit_bool_merge@7:
+    // smart_contracts/x402_batch_settlement/contract.py:157
+    // assert delay >= MIN_WITHDRAW_DELAY and delay <= MAX_WITHDRAW_DELAY, "withdraw delay range"
+    assert // withdraw delay range
+    // smart_contracts/x402_batch_settlement/contract.py:158
+    // assert config.payer != config.receiver, "payer == receiver"
+    dup
+    extract 0 32
+    dig 1
+    extract 64 32
+    swap
+    dig 1
+    !=
+    assert // payer == receiver
+    // smart_contracts/x402_batch_settlement/contract.py:161
+    // balance=arc4.UInt64(xfer.asset_amount),
+    uncover 4
+    itob
+    // smart_contracts/x402_batch_settlement/contract.py:162
+    // total_claimed=arc4.UInt64(0),
+    intc_1 // 0
+    itob
+    dup
+    cover 2
+    bury 9
+    // smart_contracts/x402_batch_settlement/contract.py:159-165
+    // self.channels[cid] = ChannelState(
+    //     config=config.copy(),
+    //     balance=arc4.UInt64(xfer.asset_amount),
+    //     total_claimed=arc4.UInt64(0),
+    //     withdraw_requested_at=arc4.UInt64(0),
+    //     withdraw_amount=arc4.UInt64(0),
+    // )
+    dig 3
+    swap
+    concat
+    dig 1
+    concat
+    dig 1
+    concat
+    swap
+    concat
+    uncover 3
+    swap
+    box_put
+    // smart_contracts/x402_batch_settlement/contract.py:166
+    // ukey = self._unsettled_key(config.receiver.native, Asset(config.asset.as_uint64()))
+    swap
+    extract 128 8
+    // smart_contracts/x402_batch_settlement/contract.py:297
+    // return receiver.bytes + op.itob(asset.id)
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:167
+    // if ukey not in self.unsettled:
+    bytec_2 // 0x75
+    swap
+    concat
+    dup
+    bury 4
+    box_len
+    bury 1
+    bnz deposit_after_if_else@10
+    // smart_contracts/x402_batch_settlement/contract.py:168
+    // self.unsettled[ukey] = UInt64(0)
+    dig 2
+    dig 4
+    box_put
+    b deposit_after_if_else@10
+
+deposit_bool_false@6:
+    intc_1 // 0
+    b deposit_bool_merge@7
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.claim[routing]() -> void:
+claim:
+    intc_1 // 0
+    dupn 4
+    bytec_3 // ""
+    dupn 2
+    // smart_contracts/x402_batch_settlement/contract.py:171-172
+    // # ---------------------------------------------------------------- claims
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    dup
+    cover 2
+    dup
+    pushint 112
+    *
+    pushint 2
+    +
+    uncover 2
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<smart_contracts.x402_batch_settlement.contract.Claim>
+    // smart_contracts/x402_batch_settlement/contract.py:181
+    // ensure_budget(n * (ED25519_COST + PER_ROW_OVERHEAD), OpUpFeeSource.GroupCredit)
+    pushint 2600
+    *
+    pushint 10
+    +
+
+claim_while_top@13:
+    dup
+    global OpcodeBudget
+    >
+    bz claim_after_while@18
+    itxn_begin
+    pushint 6 // appl
+    itxn_field TypeEnum
+    pushint 5 // DeleteApplication
+    itxn_field OnCompletion
+    bytec 4 // 0x068101
+    itxn_field ApprovalProgram
+    bytec 4 // 0x068101
+    itxn_field ClearStateProgram
+    intc_1 // 0
+    itxn_field Fee
+    itxn_submit
+    b claim_while_top@13
+
+claim_after_while@18:
+    pop
+    // smart_contracts/x402_batch_settlement/contract.py:182
+    // total = UInt64(0)
+    intc_1 // 0
+    // smart_contracts/x402_batch_settlement/contract.py:183
+    // for i in urange(n):
+    dup
+
+claim_for_header@2:
+    // smart_contracts/x402_batch_settlement/contract.py:183
+    // for i in urange(n):
+    dup
+    dig 3
+    <
+    bz claim_after_for@11
+    // smart_contracts/x402_batch_settlement/contract.py:184-185
+    // row = claims[i].copy()
+    // cid = row.channel_id.bytes
+    dig 3
+    extract 2 0
+    dig 1
+    pushint 112
+    *
+    pushint 112
+    extract3 // on error: index access is out of bounds
+    dup
+    bury 13
+    extract 0 32
+    dup
+    bury 10
+    // smart_contracts/x402_batch_settlement/contract.py:186
+    // st = self.channels[cid].copy()
+    bytec_1 // 0x63
+    swap
+    concat
+    dup
+    bury 9
+    box_get
+    swap
+    dup
+    cover 2
+    cover 3
+    assert // check self.channels entry exists
+    // smart_contracts/x402_batch_settlement/contract.py:189
+    // Txn.sender == cfg.receiver_authorizer.native or Txn.sender == cfg.receiver.native
+    txn Sender
+    swap
+    extract 0 176
+    dup
+    bury 14
+    extract 96 32
+    ==
+    bnz claim_bool_true@5
+    txn Sender
+    dig 12
+    extract 64 32
+    ==
+    bz claim_bool_false@6
+
+claim_bool_true@5:
+    intc_0 // 1
+
+claim_bool_merge@7:
+    // smart_contracts/x402_batch_settlement/contract.py:188-190
+    // assert (
+    //     Txn.sender == cfg.receiver_authorizer.native or Txn.sender == cfg.receiver.native
+    // ), "not receiver"
+    assert // not receiver
+    // smart_contracts/x402_batch_settlement/contract.py:191
+    // max_c = row.max_claimable.as_uint64()
+    dig 12
+    dup
+    intc_3 // 32
+    extract_uint64
+    dup
+    cover 2
+    bury 10
+    // smart_contracts/x402_batch_settlement/contract.py:192
+    // new_total = row.total_claimed.as_uint64()
+    dup
+    extract 104 8
+    bury 13
+    pushint 104
+    extract_uint64
+    dup
+    bury 9
+    // smart_contracts/x402_batch_settlement/contract.py:193
+    // assert new_total <= max_c, "total > max_claimable"
+    dup
+    dig 2
+    <=
+    assert // total > max_claimable
+    // smart_contracts/x402_batch_settlement/contract.py:194
+    // assert max_c <= st.balance.as_uint64(), "max_claimable > balance"
+    uncover 3
+    dup
+    cover 2
+    intc_2 // 176
+    extract_uint64
+    uncover 3
+    >=
+    assert // max_claimable > balance
+    // smart_contracts/x402_batch_settlement/contract.py:195
+    // if new_total > st.total_claimed.as_uint64():
+    swap
+    intc 4 // 184
+    extract_uint64
+    dup
+    bury 7
+    >
+    bz claim_after_if_else@9
+    // smart_contracts/x402_batch_settlement/contract.py:196
+    // msg = self._voucher_message(cid, max_c)
+    dig 8
+    dig 7
+    callsub _voucher_message
+    // smart_contracts/x402_batch_settlement/contract.py:197
+    // assert op.ed25519verify_bare(msg, row.signature.bytes, cfg.payer_authorizer.bytes), "bad voucher sig"
+    dig 12
+    extract 40 64
+    dig 12
+    dup
+    cover 3
+    extract 32 32
+    ed25519verify_bare
+    assert // bad voucher sig
+    // smart_contracts/x402_batch_settlement/contract.py:198
+    // delta = new_total - st.total_claimed.as_uint64()
+    dig 6
+    dig 6
+    -
+    // smart_contracts/x402_batch_settlement/contract.py:199-200
+    // st.total_claimed = arc4.UInt64(new_total)
+    // self.channels[cid] = st.copy()
+    dig 9
+    intc 4 // 184
+    dig 13
+    box_replace // on error: index out of bounds
+    // smart_contracts/x402_batch_settlement/contract.py:201
+    // ukey = self._unsettled_key(cfg.receiver.native, Asset(cfg.asset.as_uint64()))
+    dig 1
+    extract 64 32
+    uncover 2
+    extract 128 8
+    // smart_contracts/x402_batch_settlement/contract.py:297
+    // return receiver.bytes + op.itob(asset.id)
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:202
+    // self.unsettled[ukey] += delta
+    bytec_2 // 0x75
+    swap
+    concat
+    dup
+    box_get
+    assert // check self.unsettled entry exists
+    btoi
+    dig 2
+    +
+    itob
+    box_put
+    // smart_contracts/x402_batch_settlement/contract.py:203
+    // total += delta
+    uncover 2
+    +
+    swap
+
+claim_after_if_else@9:
+    // smart_contracts/x402_batch_settlement/contract.py:183
+    // for i in urange(n):
+    intc_0 // 1
+    +
+    b claim_for_header@2
+
+claim_bool_false@6:
+    intc_1 // 0
+    b claim_bool_merge@7
+
+claim_after_for@11:
+    pop
+    // smart_contracts/x402_batch_settlement/contract.py:171-172
+    // # ---------------------------------------------------------------- claims
+    // @arc4.abimethod
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.settle[routing]() -> void:
+settle:
+    // smart_contracts/x402_batch_settlement/contract.py:206
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // smart_contracts/x402_batch_settlement/contract.py:297
+    // return receiver.bytes + op.itob(asset.id)
+    dup
+    itob
+    dig 2
+    swap
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:210
+    // amount = self.unsettled[ukey]
+    bytec_2 // 0x75
+    swap
+    concat
+    dup
+    box_get
+    assert // check self.unsettled entry exists
+    btoi
+    // smart_contracts/x402_batch_settlement/contract.py:211
+    // assert amount > 0, "nothing to settle"
+    dup
+    assert // nothing to settle
+    // smart_contracts/x402_batch_settlement/contract.py:212
+    // self.unsettled[ukey] = UInt64(0)
+    intc_1 // 0
+    itob
+    uncover 2
+    swap
+    box_put
+    // smart_contracts/x402_batch_settlement/contract.py:213
+    // itxn.AssetTransfer(xfer_asset=asset, asset_receiver=receiver, asset_amount=amount, fee=0).submit()
+    itxn_begin
+    dup
+    itxn_field AssetAmount
+    uncover 2
+    itxn_field AssetReceiver
+    swap
+    itxn_field XferAsset
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    intc_1 // 0
+    itxn_field Fee
+    itxn_submit
+    // smart_contracts/x402_batch_settlement/contract.py:206
+    // @arc4.abimethod
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.refund[routing]() -> void:
+refund:
+    bytec_3 // ""
+    // smart_contracts/x402_batch_settlement/contract.py:216-217
+    // # ----------------------------------------------------- refunds / exits
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    swap
+    // smart_contracts/x402_batch_settlement/contract.py:221
+    // st = self.channels[cid].copy()
+    bytec_1 // 0x63
+    swap
+    concat
+    dup
+    box_get
+    swap
+    dup
+    uncover 2
+    assert // check self.channels entry exists
+    // smart_contracts/x402_batch_settlement/contract.py:224
+    // Txn.sender == cfg.receiver_authorizer.native or Txn.sender == cfg.receiver.native
+    txn Sender
+    swap
+    extract 0 176
+    dup
+    cover 3
+    extract 96 32
+    ==
+    bnz refund_bool_true@3
+    txn Sender
+    dig 2
+    extract 64 32
+    ==
+    bz refund_bool_false@4
+
+refund_bool_true@3:
+    intc_0 // 1
+
+refund_bool_merge@5:
+    // smart_contracts/x402_batch_settlement/contract.py:223-225
+    // assert (
+    //     Txn.sender == cfg.receiver_authorizer.native or Txn.sender == cfg.receiver.native
+    // ), "not receiver"
+    assert // not receiver
+    // smart_contracts/x402_batch_settlement/contract.py:226
+    // available = st.balance.as_uint64() - st.total_claimed.as_uint64()
+    dup
+    intc_2 // 176
+    extract_uint64
+    dig 1
+    intc 4 // 184
+    extract_uint64
+    dig 1
+    swap
+    -
+    // smart_contracts/x402_batch_settlement/contract.py:227
+    // amt = amount if amount < available else available
+    uncover 5
+    dup
+    cover 2
+    dig 1
+    <
+    swap
+    cover 2
+    select
+    dup
+    cover 5
+    // smart_contracts/x402_batch_settlement/contract.py:228
+    // assert amt > 0, "refund no balance"
+    dup
+    assert // refund no balance
+    // smart_contracts/x402_batch_settlement/contract.py:229
+    // st.balance = arc4.UInt64(st.balance.as_uint64() - amt)
+    -
+    itob
+    replace2 176
+    dup
+    // smart_contracts/x402_batch_settlement/contract.py:230-231
+    // # cap (or cancel) a pending timed withdrawal to what is still unclaimed
+    // if st.withdraw_requested_at.as_uint64() > 0:
+    pushint 192
+    extract_uint64
+    bz refund_after_if_else@12
+    // smart_contracts/x402_batch_settlement/contract.py:232
+    // left = st.balance.as_uint64() - st.total_claimed.as_uint64()
+    dupn 2
+    intc_2 // 176
+    extract_uint64
+    swap
+    intc 4 // 184
+    extract_uint64
+    -
+    dup
+    bury 6
+    // smart_contracts/x402_batch_settlement/contract.py:233
+    // if left == 0:
+    bnz refund_else_body@8
+    // smart_contracts/x402_batch_settlement/contract.py:234
+    // st.withdraw_requested_at = arc4.UInt64(0)
+    intc_1 // 0
+    itob
+    swap
+    dig 1
+    replace2 192
+    // smart_contracts/x402_batch_settlement/contract.py:235
+    // st.withdraw_amount = arc4.UInt64(0)
+    swap
+    replace2 200
+
+refund_after_if_else@12:
+    // smart_contracts/x402_batch_settlement/contract.py:238
+    // self.channels[cid] = st.copy()
+    uncover 2
+    swap
+    box_put
+    // smart_contracts/x402_batch_settlement/contract.py:239
+    // self._pay(cfg.payer.native, cfg.asset.as_uint64(), amt)
+    dup
+    extract 0 32
+    swap
+    intc 5 // 128
+    extract_uint64
+    dig 2
+    callsub _pay
+    // smart_contracts/x402_batch_settlement/contract.py:216-217
+    // # ----------------------------------------------------- refunds / exits
+    // @arc4.abimethod
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+refund_else_body@8:
+    // smart_contracts/x402_batch_settlement/contract.py:236
+    // elif st.withdraw_amount.as_uint64() > left:
+    dup
+    pushint 200
+    extract_uint64
+    dig 5
+    >
+    bz refund_after_if_else@12
+    // smart_contracts/x402_batch_settlement/contract.py:237
+    // st.withdraw_amount = arc4.UInt64(left)
+    dig 4
+    itob
+    replace2 200
+    b refund_after_if_else@12
+
+refund_bool_false@4:
+    intc_1 // 0
+    b refund_bool_merge@5
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.initiate_withdraw[routing]() -> void:
+initiate_withdraw:
+    // smart_contracts/x402_batch_settlement/contract.py:242
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    cover 2
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    dup
+    cover 2
+    cover 3
+    // smart_contracts/x402_batch_settlement/contract.py:245
+    // st = self.channels[cid].copy()
+    bytec_1 // 0x63
+    swap
+    concat
+    dup
+    cover 2
+    box_get
+    swap
+    dup
+    cover 2
+    cover 3
+    assert // check self.channels entry exists
+    // smart_contracts/x402_batch_settlement/contract.py:246
+    // cfg = st.config.copy()
+    dup
+    extract 0 176
+    // smart_contracts/x402_batch_settlement/contract.py:247
+    // self._assert_payer_side(cfg)
+    callsub _assert_payer_side
+    cover 3
+    // smart_contracts/x402_batch_settlement/contract.py:248
+    // available = st.balance.as_uint64() - st.total_claimed.as_uint64()
+    dup
+    intc_2 // 176
+    extract_uint64
+    swap
+    intc 4 // 184
+    extract_uint64
+    -
+    cover 5
+    // smart_contracts/x402_batch_settlement/contract.py:249
+    // assert amount > 0 and amount <= available, "withdraw amount"
+    bz initiate_withdraw_bool_false@4
+    dig 5
+    dig 5
+    <=
+    bz initiate_withdraw_bool_false@4
+    intc_0 // 1
+
+initiate_withdraw_bool_merge@5:
+    // smart_contracts/x402_batch_settlement/contract.py:249
+    // assert amount > 0 and amount <= available, "withdraw amount"
+    assert // withdraw amount
+    // smart_contracts/x402_batch_settlement/contract.py:250
+    // st.withdraw_requested_at = arc4.UInt64(Global.latest_timestamp)
+    global LatestTimestamp
+    itob
+    replace2 192
+    // smart_contracts/x402_batch_settlement/contract.py:251
+    // st.withdraw_amount = arc4.UInt64(amount)
+    uncover 3
+    replace2 200
+    // smart_contracts/x402_batch_settlement/contract.py:252
+    // self.channels[cid] = st.copy()
+    uncover 2
+    swap
+    box_put
+    // smart_contracts/x402_batch_settlement/contract.py:253
+    // return Global.latest_timestamp + cfg.withdraw_delay.as_uint64()
+    global LatestTimestamp
+    swap
+    intc 6 // 136
+    extract_uint64
+    +
+    // smart_contracts/x402_batch_settlement/contract.py:242
+    // @arc4.abimethod
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+initiate_withdraw_bool_false@4:
+    intc_1 // 0
+    b initiate_withdraw_bool_merge@5
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement.finalize_withdraw[routing]() -> void:
+finalize_withdraw:
+    // smart_contracts/x402_batch_settlement/contract.py:255
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // smart_contracts/x402_batch_settlement/contract.py:258
+    // st = self.channels[cid].copy()
+    bytec_1 // 0x63
+    swap
+    concat
+    dup
+    box_get
+    assert // check self.channels entry exists
+    // smart_contracts/x402_batch_settlement/contract.py:259
+    // cfg = st.config.copy()
+    dup
+    extract 0 176
+    // smart_contracts/x402_batch_settlement/contract.py:260
+    // self._assert_payer_side(cfg)
+    callsub _assert_payer_side
+    dup
+    cover 2
+    cover 3
+    // smart_contracts/x402_batch_settlement/contract.py:261
+    // requested = st.withdraw_requested_at.as_uint64()
+    dup
+    pushint 192
+    extract_uint64
+    // smart_contracts/x402_batch_settlement/contract.py:262
+    // assert requested > 0, "no withdraw pending"
+    dup
+    assert // no withdraw pending
+    // smart_contracts/x402_batch_settlement/contract.py:263
+    // assert Global.latest_timestamp >= requested + cfg.withdraw_delay.as_uint64(), "withdraw delay"
+    global LatestTimestamp
+    uncover 3
+    intc 6 // 136
+    extract_uint64
+    uncover 2
+    +
+    >=
+    assert // withdraw delay
+    // smart_contracts/x402_batch_settlement/contract.py:264
+    // available = st.balance.as_uint64() - st.total_claimed.as_uint64()
+    dup
+    intc_2 // 176
+    extract_uint64
+    dig 1
+    intc 4 // 184
+    extract_uint64
+    dig 1
+    swap
+    -
+    // smart_contracts/x402_batch_settlement/contract.py:265
+    // want = st.withdraw_amount.as_uint64()
+    dig 2
+    pushint 200
+    extract_uint64
+    // smart_contracts/x402_batch_settlement/contract.py:266
+    // amt = want if want < available else available
+    dup
+    dig 2
+    <
+    select
+    dup
+    cover 4
+    // smart_contracts/x402_batch_settlement/contract.py:267
+    // st.balance = arc4.UInt64(st.balance.as_uint64() - amt)
+    swap
+    dig 1
+    -
+    itob
+    uncover 2
+    swap
+    replace2 176
+    // smart_contracts/x402_batch_settlement/contract.py:268
+    // st.withdraw_requested_at = arc4.UInt64(0)
+    intc_1 // 0
+    itob
+    swap
+    dig 1
+    replace2 192
+    // smart_contracts/x402_batch_settlement/contract.py:269
+    // st.withdraw_amount = arc4.UInt64(0)
+    swap
+    replace2 200
+    // smart_contracts/x402_batch_settlement/contract.py:270
+    // self.channels[cid] = st.copy()
+    uncover 2
+    swap
+    box_put
+    // smart_contracts/x402_batch_settlement/contract.py:271
+    // if amt > 0:
+    bz finalize_withdraw_after_if_else@3
+    // smart_contracts/x402_batch_settlement/contract.py:272
+    // self._pay(cfg.payer.native, cfg.asset.as_uint64(), amt)
+    dig 1
+    dup
+    extract 0 32
+    swap
+    intc 5 // 128
+    extract_uint64
+    dig 2
+    callsub _pay
+
+finalize_withdraw_after_if_else@3:
+    // smart_contracts/x402_batch_settlement/contract.py:255
+    // @arc4.abimethod
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement._channel_id(config: bytes) -> bytes, bytes:
+_channel_id:
+    // smart_contracts/x402_batch_settlement/contract.py:275-277
+    // # ------------------------------------------------------------- helpers
+    // @subroutine
+    // def _channel_id(self, config: ChannelConfig) -> Bytes:
+    proto 1 2
+    // smart_contracts/x402_batch_settlement/contract.py:279
+    // Bytes(CHANNEL_PREFIX)
+    pushbytes 0x783430322d61766d2d62732d6368616e6e656c2d7631
+    // smart_contracts/x402_batch_settlement/contract.py:280
+    // + Global.genesis_hash
+    global GenesisHash
+    // smart_contracts/x402_batch_settlement/contract.py:279-280
+    // Bytes(CHANNEL_PREFIX)
+    // + Global.genesis_hash
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:281
+    // + op.itob(Global.current_application_id.id)
+    global CurrentApplicationID
+    itob
+    // smart_contracts/x402_batch_settlement/contract.py:279-281
+    // Bytes(CHANNEL_PREFIX)
+    // + Global.genesis_hash
+    // + op.itob(Global.current_application_id.id)
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:279-282
+    // Bytes(CHANNEL_PREFIX)
+    // + Global.genesis_hash
+    // + op.itob(Global.current_application_id.id)
+    // + config.bytes
+    frame_dig -1
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:278-283
+    // return op.sha256(
+    //     Bytes(CHANNEL_PREFIX)
+    //     + Global.genesis_hash
+    //     + op.itob(Global.current_application_id.id)
+    //     + config.bytes
+    // )
+    sha256
+    frame_dig -1
+    retsub
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement._voucher_message(cid: bytes, max_claimable: uint64) -> bytes:
+_voucher_message:
+    // smart_contracts/x402_batch_settlement/contract.py:285-286
+    // @subroutine
+    // def _voucher_message(self, cid: Bytes, max_claimable: UInt64) -> Bytes:
+    proto 2 1
+    // smart_contracts/x402_batch_settlement/contract.py:288
+    // Bytes(VOUCHER_PREFIX)
+    pushbytes 0x783430322d61766d2d62732d766f75636865722d7631
+    // smart_contracts/x402_batch_settlement/contract.py:289
+    // + Global.genesis_hash
+    global GenesisHash
+    // smart_contracts/x402_batch_settlement/contract.py:288-289
+    // Bytes(VOUCHER_PREFIX)
+    // + Global.genesis_hash
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:290
+    // + op.itob(Global.current_application_id.id)
+    global CurrentApplicationID
+    itob
+    // smart_contracts/x402_batch_settlement/contract.py:288-290
+    // Bytes(VOUCHER_PREFIX)
+    // + Global.genesis_hash
+    // + op.itob(Global.current_application_id.id)
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:288-291
+    // Bytes(VOUCHER_PREFIX)
+    // + Global.genesis_hash
+    // + op.itob(Global.current_application_id.id)
+    // + cid
+    frame_dig -2
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:292
+    // + op.itob(max_claimable)
+    frame_dig -1
+    itob
+    // smart_contracts/x402_batch_settlement/contract.py:288-292
+    // Bytes(VOUCHER_PREFIX)
+    // + Global.genesis_hash
+    // + op.itob(Global.current_application_id.id)
+    // + cid
+    // + op.itob(max_claimable)
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:287-293
+    // return (
+    //     Bytes(VOUCHER_PREFIX)
+    //     + Global.genesis_hash
+    //     + op.itob(Global.current_application_id.id)
+    //     + cid
+    //     + op.itob(max_claimable)
+    // )
+    retsub
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement._open_mbr(config: bytes) -> uint64, bytes:
+_open_mbr:
+    // smart_contracts/x402_batch_settlement/contract.py:299-300
+    // @subroutine
+    // def _open_mbr(self, config: ChannelConfig) -> UInt64:
+    proto 1 2
+    // smart_contracts/x402_batch_settlement/contract.py:301
+    // required = UInt64(0)
+    intc_1 // 0
+    // smart_contracts/x402_batch_settlement/contract.py:302
+    // cid = self._channel_id(config)
+    frame_dig -1
+    callsub _channel_id
+    frame_bury -1
+    // smart_contracts/x402_batch_settlement/contract.py:303
+    // if cid not in self.channels:
+    bytec_1 // 0x63
+    swap
+    concat
+    box_len
+    bury 1
+    bnz _open_mbr_after_if_else@4
+    // smart_contracts/x402_batch_settlement/contract.py:304
+    // required += BOX_FLAT_MBR + BOX_BYTE_MBR * (1 + 32 + size_of(ChannelState))
+    pushint 98900
+    frame_bury 0
+
+_open_mbr_after_if_else@4:
+    // smart_contracts/x402_batch_settlement/contract.py:305
+    // ukey = self._unsettled_key(config.receiver.native, Asset(config.asset.as_uint64()))
+    frame_dig -1
+    extract 64 32
+    frame_dig -1
+    extract 128 8
+    // smart_contracts/x402_batch_settlement/contract.py:297
+    // return receiver.bytes + op.itob(asset.id)
+    concat
+    // smart_contracts/x402_batch_settlement/contract.py:306
+    // if ukey not in self.unsettled:
+    bytec_2 // 0x75
+    swap
+    concat
+    box_len
+    bury 1
+    bnz _open_mbr_after_if_else@6
+    // smart_contracts/x402_batch_settlement/contract.py:307
+    // required += BOX_FLAT_MBR + BOX_BYTE_MBR * (1 + 40 + 8)
+    frame_dig 0
+    pushint 22100
+    +
+    frame_bury 0
+
+_open_mbr_after_if_else@6:
+    // smart_contracts/x402_batch_settlement/contract.py:308
+    // return required
+    frame_dig 0
+    frame_dig -1
+    uncover 2
+    retsub
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement._assert_payer_side(cfg: bytes) -> bytes:
+_assert_payer_side:
+    // smart_contracts/x402_batch_settlement/contract.py:320-321
+    // @subroutine
+    // def _assert_payer_side(self, cfg: ChannelConfig) -> None:
+    proto 1 1
+    // smart_contracts/x402_batch_settlement/contract.py:322
+    // assert Txn.sender == cfg.payer.native or Txn.sender == cfg.payer_authorizer.native, "not payer"
+    txn Sender
+    frame_dig -1
+    extract 0 32
+    ==
+    bnz _assert_payer_side_bool_true@2
+    txn Sender
+    frame_dig -1
+    extract 32 32
+    ==
+    bz _assert_payer_side_bool_false@3
+
+_assert_payer_side_bool_true@2:
+    intc_0 // 1
+
+_assert_payer_side_bool_merge@4:
+    // smart_contracts/x402_batch_settlement/contract.py:322
+    // assert Txn.sender == cfg.payer.native or Txn.sender == cfg.payer_authorizer.native, "not payer"
+    assert // not payer
+    frame_dig -1
+    retsub
+
+_assert_payer_side_bool_false@3:
+    intc_1 // 0
+    b _assert_payer_side_bool_merge@4
+
+
+// smart_contracts.x402_batch_settlement.contract.X402BatchSettlement._pay(receiver: bytes, asset_id: uint64, amount: uint64) -> void:
+_pay:
+    // smart_contracts/x402_batch_settlement/contract.py:324-325
+    // @subroutine
+    // def _pay(self, receiver: Account, asset_id: UInt64, amount: UInt64) -> None:
+    proto 3 0
+    // smart_contracts/x402_batch_settlement/contract.py:326-328
+    // itxn.AssetTransfer(
+    //     xfer_asset=Asset(asset_id), asset_receiver=receiver, asset_amount=amount, fee=0
+    // ).submit()
+    itxn_begin
+    frame_dig -1
+    itxn_field AssetAmount
+    frame_dig -3
+    itxn_field AssetReceiver
+    frame_dig -2
+    itxn_field XferAsset
+    // smart_contracts/x402_batch_settlement/contract.py:326
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // smart_contracts/x402_batch_settlement/contract.py:327
+    // xfer_asset=Asset(asset_id), asset_receiver=receiver, asset_amount=amount, fee=0
+    intc_1 // 0
+    itxn_field Fee
+    // smart_contracts/x402_batch_settlement/contract.py:326-328
+    // itxn.AssetTransfer(
+    //     xfer_asset=Asset(asset_id), asset_receiver=receiver, asset_amount=amount, fee=0
+    // ).submit()
+    itxn_submit
+    retsub

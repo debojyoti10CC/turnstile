@@ -1,0 +1,17 @@
+{
+  "name": "turnstile",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "refs": "bash scripts/fetch-references.sh",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "contracts:build": "cd contracts && puyapy smart_contracts/x402_batch_settlement/contract.py --output-arc56 --output-bytecode --out-dir artifacts",
+    "contracts:test": "cd contracts && python -m pytest tests -q",
+    "contracts:localnet": "cd contracts && python -m pytest tests/localnet -q",
+    "adversary": "pnpm -F @turnstile/adversary start",
+    "bench": "pnpm -F @turnstile/demo-agent bench",
+    "dev": "pnpm -r --parallel --filter ./apps/** dev",
+    "deploy:testnet": "pnpm -F @turnstile/deploy testnet"
+  }
+}
