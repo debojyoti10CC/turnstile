@@ -164,5 +164,18 @@ describe('I8: settler claims the highest voucher before a withdrawal finalizes',
     const withdrawn = await finalizeWithdraw({ appClient, sender: summary.payer, channelId: cid, asset: BigInt(summary.asset_id) });
     expect(withdrawn).toBe(expectedWithdraw);
     expect(withdrawn).toBe(depositAmount - signedMax);
+
+    // The dev-mode timestamp offset is global LocalNet state, not scoped to
+    // this test process -- leaving it non-zero would make any other
+    // localnet-dependent suite (e.g. packages/adversary's
+    // finalize_before_delay attack) see a falsely-advanced clock. Reset it
+    // and latch the reset in with another throwaway transaction.
+    await algorand.client.algod.setBlockOffsetTimestamp(0).do();
+    await algorand.send.payment({
+      sender: summary.payer,
+      receiver: summary.payer,
+      amount: microAlgos(0),
+      note: new Uint8Array(randomBytes(8)),
+    });
   }, 60_000);
 });

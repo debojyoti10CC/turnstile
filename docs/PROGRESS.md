@@ -460,3 +460,15 @@
   `exact` fallback (needs explicit team sign-off per §4 P7's opt-in
   clause), upstreaming the spec.
   **Risks:** none outstanding.
+
+- **2026-09-12 — Definition-of-done pass + a real cross-suite test bug
+  found and fixed.** Ran `pnpm contracts:test` (31 passed), `pnpm -r
+  test` (67 passed), and `pnpm adversary` in sequence per CLAUDE.md §10.
+  The adversary run initially regressed to 23/24 (`finalize_before_delay`
+  wrongly accepted) — not a contract bug, but `packages/settler`'s I8
+  test leaving LocalNet's dev-mode timestamp offset at a non-zero global
+  value after simulating a withdraw delay, which let the very next suite
+  see a falsely-advanced clock. Fixed by having that test reset the
+  offset to 0 (with the same latching-transaction pattern used to set
+  it) once it's done. Reran everything after the fix: 31 + 67 + 24/24,
+  all green.
