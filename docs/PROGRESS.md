@@ -26,20 +26,15 @@
   AVM deviations). Git repo initialized (none existed before).
   **What's next:** P1 — `algokit` CLI + LocalNet (Docker) deploy script,
   `packages/escrow-client`.
-  **Risks:**
-  (1) `puyapy`/`mypy` cannot run in this sandbox — Windows Application Control
-  policy blocks mypy's compiled DLL import (`ImportError: DLL load failed ...
-  Application Control policy has blocked this file`). Contract **cannot be
-  recompiled here**; the checked-in `artifacts/` (approval/clear TEAL + bin +
-  ARC-56) are used as-is and the 25 offline tests (which exercise them via
-  `algorand-python-testing`) still pass, so this only blocks *regeneration*,
-  not correctness of what's committed. Needs a non-restricted machine or a
-  policy exception to rebuild after any contract.py change.
-  (2) Docker Desktop's Linux engine is not running in this environment
-  (`docker info` → `failed to connect ... dockerDesktopLinuxEngine`) and I
-  cannot start the GUI app from this sandboxed shell. LocalNet-dependent work
-  (P1 exit criteria I1–I7, I9, I10 on real txns) needs the user to run
-  `algokit localnet start` (or start Docker Desktop) before those tests can
-  execute; code for P1 can still be written and will auto-skip until then.
-  (3) `algokit` CLI itself is not installed yet (`command not found`) —
-  needs `pipx install algokit` or `pip install algokit`, deferred to P1 start.
+- 2026-09-11 — P0 follow-up — installed `algokit` CLI 2.10.2 into
+  `contracts/.venv`; user started Docker Desktop; `algokit localnet start`
+  succeeded (algod/indexer/conduit/postgres containers healthy,
+  `http://localhost:4001` reachable). Re-ran `puyapy` build — the earlier
+  mypy DLL Application-Control failure did not recur (likely transient /
+  resolved by the algokit install pulling a compatible toolchain); rebuilt
+  `artifacts/` byte-for-byte identical to the committed ones (`git status`
+  clean after rebuild), 25 offline tests still green. Both `contracts:build`
+  and `contracts:test` exit criteria are now verified directly, and LocalNet
+  is live for P1.
+  **Risks:** none outstanding for P0. Carry forward: watch for the mypy DLL
+  error recurring on a fresh shell (if so, retry once — it self-resolved here).
