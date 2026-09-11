@@ -54,6 +54,7 @@ export class BatchSettlementAvmClientScheme implements SchemeNetworkClient {
 
   private readonly storage: ClientChannelStorage;
   private readonly config: BatchSettlementAvmClientConfig;
+  private readonly channelLocks = new Map<string, Promise<void>>();
 
   constructor(config: BatchSettlementAvmClientConfig) {
     this.config = config;
@@ -67,19 +68,51 @@ export class BatchSettlementAvmClientScheme implements SchemeNetworkClient {
     return this.storage;
   }
 
+  /**
+   * Serializes read-sign-write sequences per channel. Without this, two
+   * concurrent `createPaymentPayload` calls for the same channel both read
+   * the same `signedMaxClaimable` base and sign overlapping ceilings, then
+   * the second request to actually reach the server gets rejected for
+   * exceeding a cap the first request already consumed. A session key
+   * signs sequentially by nature, so serializing here costs nothing real --
+   * the alternative (racing) is simply incorrect, not a throughput trade-off.
+   */
+  private async withChannelLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    const previous = this.channelLocks.get(key) ?? Promise.resolve();
+    let release!: () => void;
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const next = previous.catch(() => {}).then(() => current);
+    this.channelLocks.set(key, next);
+
+    await previous.catch(() => {});
+    try {
+      return await fn();
+    } finally {
+      release();
+      if (this.channelLocks.get(key) === next) {
+        this.channelLocks.delete(key);
+      }
+    }
+  }
+
   async createPaymentPayload(
     _x402Version: number,
     requirements: PaymentRequirements,
     _context?: PaymentPayloadContext,
   ): Promise<PaymentPayloadResult> {
-    const extra = requirements.extra as unknown as AvmBatchExtra;
-    const existing = await this.storage.findByDestination(requirements.payTo, requirements.asset);
+    const destinationKey = `${requirements.payTo}:${requirements.asset}`;
+    return this.withChannelLock(destinationKey, async () => {
+      const extra = requirements.extra as unknown as AvmBatchExtra;
+      const existing = await this.storage.findByDestination(requirements.payTo, requirements.asset);
 
-    if (existing) {
-      return { x402Version: 2, payload: await this.buildVoucherPayload(existing, requirements) };
-    }
+      if (existing) {
+        return { x402Version: 2, payload: await this.buildVoucherPayload(existing, requirements) };
+      }
 
-    return { x402Version: 2, payload: await this.buildDepositPayload(requirements, extra) };
+      return { x402Version: 2, payload: await this.buildDepositPayload(requirements, extra) };
+    });
   }
 
   // ----------------------------------------------------------------- steady state
@@ -88,7 +121,12 @@ export class BatchSettlementAvmClientScheme implements SchemeNetworkClient {
     requirements: PaymentRequirements,
   ): Promise<AvmBatchPayload> {
     const amount = BigInt(requirements.amount);
-    const newMax = BigInt(record.chargedCumulativeAmount) + amount;
+    // Base on the latest *signed* ceiling, not the confirmed actual total --
+    // signedMaxClaimable is reserved synchronously (within this call's
+    // channel lock) the moment a voucher is created, before the request
+    // even goes out, so concurrent calls never double-claim the same
+    // headroom regardless of how long a response takes to come back.
+    const newMax = BigInt(record.signedMaxClaimable) + amount;
     const channelId = fromB64(record.channelId);
     const sig = await signVoucher(record.sessionKey, this.config.deployment, channelId, newMax);
     const signature = toB64(sig);
@@ -157,12 +195,24 @@ export class BatchSettlementAvmClientScheme implements SchemeNetworkClient {
     if (ctx.settleResponse?.success) {
       const record = await this.storage.get(raw.voucher.channelId);
       if (record) {
-        await this.storage.set({
-          ...record,
-          chargedCumulativeAmount: BigInt(raw.voucher.maxClaimableAmount) >= BigInt(record.chargedCumulativeAmount)
-            ? raw.voucher.maxClaimableAmount
-            : record.chargedCumulativeAmount,
-          confirmed: true,
+        const destinationKey = `${record.channelConfig.receiver}:${record.channelConfig.asset}`;
+        await this.withChannelLock(destinationKey, async () => {
+          // Re-read inside the lock: another response may have committed
+          // between the get() above and acquiring the lock.
+          const current = (await this.storage.get(raw.voucher.channelId)) ?? record;
+          // Track the server's actual settled amount for this request, not
+          // the voucher's signed *ceiling* -- with dynamic pricing the two
+          // regularly differ, and using the ceiling here would make the
+          // client's bookkeeping drift ahead of what the merchant/chain
+          // actually charged (still safe, since the signed cap only grants
+          // headroom, but it breaks the "agent/merchant/chain agree" property
+          // a demo or settler would want to rely on).
+          const settledThisRequest = BigInt(ctx.settleResponse!.amount ?? '0');
+          await this.storage.set({
+            ...current,
+            chargedCumulativeAmount: (BigInt(current.chargedCumulativeAmount) + settledThisRequest).toString(),
+            confirmed: true,
+          });
         });
       }
       return;

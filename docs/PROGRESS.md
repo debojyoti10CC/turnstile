@@ -6,7 +6,7 @@
 | P0 Scaffold | ✅ | refs cloned, workspace installed, spec-notes written, localnet skip-guard added |
 | P1 Contract on LocalNet + escrow client | ✅ | deploy script, 6 real-tx LocalNet invariant tests, `packages/escrow-client` (TS tx builders) all done and verified against real transactions |
 | P2 Plugin client + server | 🟡 | core verify/charge path + client scheme done and tested (scoped per DECISIONS.md); facilitator package, full corrective-402 wire plumbing through real @x402/core HTTP stack, and file/SQLite storage backends not yet built |
-| P3 Facilitator + demo apps | ⬜ | |
+| P3 Facilitator + demo apps | ✅ | facilitator, demo-merchant, demo-agent all built and run for real on LocalNet: 200/200 dynamic-priced calls through one channel, agent/merchant state agree exactly |
 | P4 Settler | ⬜ | |
 | P5 Adversary | ⬜ | |
 | P6 Bench + dashboard + TestNet | ⬜ | |
@@ -167,3 +167,64 @@
   facilitator (to submit deposit groups and later claim/settle) and without
   connecting this scheme to `@x402/express`/`@x402/fetch`'s actual HTTP
   plumbing, which hasn't been exercised against this code yet.
+
+- 2026-09-11 — P3 complete — built and ran, for real, on LocalNet:
+  `packages/x402-avm-batch/src/facilitator/scheme.ts`
+  (`BatchSettlementAvmFacilitatorScheme` implementing `SchemeNetworkFacilitator`
+  -- `verify()` delegates to the channel manager for voucher/deposit/refund
+  payloads, `settle()` submits the on-chain `refund()` call for cooperative
+  refunds via an injected executor); `apps/facilitator` (Express, hand-rolled
+  `/verify` `/settle` `/supported` per the wire contract `HTTPFacilitatorClient`
+  expects -- no such server-side helper exists in `@x402/*`, unlike the
+  client-side `HTTPFacilitatorClient`); `apps/demo-merchant` (Express +
+  `@x402/express` `paymentMiddleware`, flat `GET /v1/data` and dynamic
+  `POST /v1/infer` using `setSettlementOverrides` to charge actual
+  handler-determined usage); `apps/demo-agent` (`@x402/fetch` +
+  `BatchSettlementAvmClientScheme`, `--mode batch --calls N --concurrency K`).
+  **Real run, not simulated:** fresh LocalNet deploy -> facilitator + merchant
+  processes -> agent makes 200 dynamic-priced `/v1/infer` calls at
+  `--concurrency 5` through one channel -> **200/200 succeeded**. Cross-checked
+  via a debug endpoint: agent's local `chargedCumulativeAmount` (105000) and
+  the merchant's own `ChannelStorage` record (105000) match exactly; on-chain
+  balance (300000) and `totalClaimed` (0, expected -- claim/settle is P4's
+  settler, not run yet) read back correctly via `escrow-client.getChannel`.
+  This is the P3 exit criterion from CLAUDE.md verbatim, actually executed
+  (see `docs/DECISIONS.md` for version/numbers; no fabricated figures).
+  **Two real bugs found and fixed by this run** (full reasoning in
+  `docs/DECISIONS.md`, here's the summary): (1) the server scheme declared
+  `@x402/core`'s `"escrow"` payment flow, which calls `beforeSettle` *twice*
+  per request for a different two-phase-settlement purpose than this scheme
+  needed -- caused every dynamic-priced request to double-charge and fail;
+  fixed by switching to `"authorization"` (single settle-after-handler),
+  matching the EVM reference exactly. (2) the client scheme's local voucher
+  bookkeeping used the confirmed-actual `chargedCumulativeAmount` as the
+  basis for signing each new voucher's ceiling, which both (a) let the
+  client's stored total drift away from what the merchant/chain actually
+  charged under dynamic pricing, and (b) raced under concurrency (two
+  in-flight requests reading the same stale base and signing overlapping
+  ceilings, reproduced directly: 95/200 calls failed at `--concurrency 5`
+  before the fix). Fixed by signing off the separately-tracked
+  `signedMaxClaimable` (the latest *reserved* ceiling, written back inside a
+  per-channel async lock synchronously before the request is sent) and by
+  updating `chargedCumulativeAmount` only from the server's actual settled
+  amount on response. Also discovered along the way: each voucher reserves
+  its *full* per-call ceiling against channel balance regardless of actual
+  dynamic usage (the client can't know the actual in advance) -- so a
+  200-call run needs deposit headroom sized as `ceiling × calls`, not
+  `actual × calls`; sized the demo's deposit multiplier and route ceiling
+  accordingly and left a comment explaining why.
+  Combined workspace total after P3: 31 Python + 11 `core` + 1
+  `escrow-client` (real LocalNet) + 9 `x402-avm-batch` (unit/in-process) = 52
+  automated tests, all green, plus the real 200-call LocalNet run above.
+  **Deliberately out of scope this pass:** the `exact` scheme fallback
+  route/demo-agent mode (`@x402/avm`'s exact scheme was never wired in,
+  consistent with the algokit-utils version decision from P2); a flat-price
+  agent run (only dynamic `/v1/infer` was driven end-to-end; `/v1/data`
+  exists on the merchant but the agent CLI doesn't exercise it yet);
+  SQLite/file-backed `ChannelStorage` (still in-memory only, fine for one
+  demo process but not for a restart-surviving facilitator).
+  **What's next:** P4 — the settler (`packages/settler`): claim/settle
+  policies (threshold, periodic, on-withdraw), which is what actually moves
+  the 105000 atomic units charged above from "accounted" to "on-chain
+  claimed and swept to the receiver."
+  **Risks:** none outstanding for P3 beyond the documented scope cuts.

@@ -186,10 +186,11 @@ describe('corrective_402', () => {
     await runRequest(client, server, reqs); // establish the channel, charged=1000
 
     // Simulate the client's local state drifting stale (e.g. lost between
-    // processes): reset its chargedCumulativeAmount to 0 so its next voucher
-    // under-claims relative to what the server already committed.
+    // processes): reset both bookkeeping fields to 0 so its next voucher
+    // (signed off signedMaxClaimable, the reserved ceiling) under-claims
+    // relative to what the server already committed.
     const record = await client.getStorage().findByDestination(receiverAddress, '1001');
-    await client.getStorage().set({ ...record!, chargedCumulativeAmount: '0' });
+    await client.getStorage().set({ ...record!, chargedCumulativeAmount: '0', signedMaxClaimable: '0' });
 
     const result = await runRequest(client, server, reqs);
     expect(result.settled).toBe(false);

@@ -27,3 +27,14 @@ export const GENESIS_HASH_B64 = {
 /** Circle USDC ASA ids. Source: @x402/avm constants (verify before mainnet). */
 export const USDC_ASA_ID = { mainnet: 31566704n, testnet: 10458941n } as const;
 export const USDC_DECIMALS = 6;
+
+/**
+ * CAIP-2 id for any Algorand network (LocalNet included): `algorand:` +
+ * the first 32 chars of the url-safe base64 genesis hash. Matches
+ * `.refs/x402`'s `@x402/avm` CAIP-2 construction (verified against its
+ * published MAINNET/TESTNET constants above).
+ */
+export function caip2FromGenesisHash(genesisHash: Uint8Array): string {
+  const urlSafe = Buffer.from(genesisHash).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return `algorand:${urlSafe.slice(0, 32)}`;
+}

@@ -50,8 +50,13 @@ export interface BatchSettlementAvmServerConfig {
 export class BatchSettlementAvmScheme implements SchemeNetworkServer {
   readonly scheme = BATCH_SETTLEMENT_SCHEME;
   readonly defaultAssetTransferMethod = 'default';
+  // "authorization" (verify before handler, single settle after handler)
+  // matches the EVM batch-settlement reference exactly -- @x402/core's
+  // "escrow" flow is a *different* concept (two settle phases, before AND
+  // after the handler) that doesn't fit this scheme at all; picking it
+  // caused beforeSettle to be invoked twice per request and double-charge.
   readonly paymentFlows: Readonly<Record<string, PaymentFlowConfig>> = {
-    default: { supported: ['escrow'], default: 'escrow' },
+    default: { supported: ['authorization'], default: 'authorization' },
   };
   readonly schemeHooks: SchemeServerHooks;
 
@@ -92,6 +97,7 @@ export class BatchSettlementAvmScheme implements SchemeNetworkServer {
 
     const result = await this.channelManager.verifyVoucher(raw.channelConfig, raw.voucher);
     if (!result.ok) {
+      console.error('[x402-avm-batch] beforeVerify abort', result.error, result.message);
       return { abort: true as const, reason: result.error, message: result.message };
     }
     return;
@@ -112,6 +118,7 @@ export class BatchSettlementAvmScheme implements SchemeNetworkServer {
     const actual = BigInt(ctx.requirements.amount);
     const result = await this.channelManager.charge(cid, actual, raw.voucher);
     if (!result.ok) {
+      console.error('[x402-avm-batch] beforeSettle abort', result.error, result.message);
       return { abort: true as const, reason: result.error, message: result.message };
     }
 
