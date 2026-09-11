@@ -438,3 +438,25 @@
   (60-second pitch, architecture diagram, quickstart, security model,
   limitations).
   **Risks:** none outstanding for the dashboard.
+
+- **2026-09-12 — P7: spec finalized, README rewritten.** Bumped
+  `docs/spec/scheme_batch_settlement_avm.md` to draft v0.2 and reconciled
+  it against the actual reference implementation rather than the original
+  P0-era draft: documented the real `claim()` box-reference row cap
+  (§3.3, not opcode budget — see the 2026-09-11 DECISIONS entry), and
+  marked the spec's fee-payer-sponsorship path (§5.2, §6.7) as allowed by
+  the spec but unused by this implementation, which always has the
+  client submit its own fully-signed deposit group.
+  Rewrote the top-level README (it still described the pre-P0 scaffold):
+  60-second pitch with the real headline benchmark number, a mermaid
+  architecture diagram, a verified LocalNet quickstart (the exact env
+  vars/commands used throughout this log, not aspirational ones), the
+  real benchmark table, a security model section citing the actual
+  invariant tests, and an explicit limitations section (no fee-payer
+  sponsorship, settler is a library not a service yet, naive exact
+  baseline, single-merchant dashboard, TestNet-only).
+  **What's next:** nothing outstanding from CLAUDE.md §4's phase list.
+  Possible follow-ups if desired: a standalone settler service, MainNet
+  `exact` fallback (needs explicit team sign-off per §4 P7's opt-in
+  clause), upstreaming the spec.
+  **Risks:** none outstanding.

@@ -1,10 +1,13 @@
 # Scheme: `batch-settlement` on `AVM` (Algorand)
 
-> Status: **draft v0.1** (Turnstile). Companion to the network-agnostic
+> Status: **draft v0.2** (Turnstile) — verified against a working reference implementation (contract,
+> TypeScript SDK, facilitator, demo merchant/agent, 24/24-attack adversary suite, and a live deployment
+> on Algorand TestNet; see `docs/PROGRESS.md`). Companion to the network-agnostic
 > [`scheme_batch_settlement.md`](../reference/scheme_batch_settlement.md). Structure and field names
 > mirror the EVM and SVM bindings ([evm](../reference/scheme_batch_settlement_evm.md),
 > [svm](../reference/scheme_batch_settlement_svm.md)) so this document can be upstreamed as
-> `specs/schemes/batch-settlement/scheme_batch_settlement_avm.md`.
+> `specs/schemes/batch-settlement/scheme_batch_settlement_avm.md`. Known deviations from this document
+> in the reference implementation are called out inline and tracked in `docs/DECISIONS.md`.
 > Reference contract: `contracts/smart_contracts/x402_batch_settlement/contract.py`.
 
 ## 1. Summary
@@ -74,6 +77,14 @@ same config is re-funded. Clients rotate `salt` for a fresh channel.
 Fees: all inner transactions use fee 0; the outer transaction pools fees. `claim` calls
 `ensure_budget(n × 2600)` with group-credit op-ups; the submitter must add enough extra fee.
 
+One `claim` call's row count is bounded by Algorand's per-transaction box-reference limit
+(`MAX_APP_CALL_FOREIGN_REFERENCES = 8`), not by opcode budget (empirically never the binding
+constraint — see `docs/DECISIONS.md`, 2026-09-11). Each row needs its own channel box plus one
+shared unsettled-balance box per distinct receiver, so the exact cap is 7 rows when every row
+shares a receiver (`MAX_CLAIM_ROWS_PER_CALL_SAME_RECEIVER`) down to 4 when every row has a
+different receiver (`MAX_CLAIM_ROWS_PER_CALL`); `@turnstile/escrow-client`'s `claimBatch` enforces
+this bound and chunks larger batches into multiple calls.
+
 ## 4. Voucher
 
 ```
@@ -114,8 +125,10 @@ corrective 402s (as in EVM/SVM).
 
 - `deposit`: `{ type, channelConfig, voucher, deposit: { amount, paymentGroup: [b64 txns] } }`.
   `paymentGroup` is `[axfer(payer→app), pay(MBR), appl(deposit)]`. The client signs the axfer (and pay
-  if it funds MBR). When `extra.feePayer` is set, the appl sender is the fee payer and it is left unsigned
-  for the server/facilitator to sign after validation (same pattern as `exact` on Algorand).
+  if it funds MBR). The spec permits a sponsored variant where `extra.feePayer` is set and the appl
+  sender is a fee payer who co-signs after validation (same pattern as `exact` on Algorand); **this
+  reference implementation does not use it** — the client/agent submits its own fully-signed deposit
+  group directly (see `docs/DECISIONS.md`), so `extra.feePayer` is always absent on the wire here.
 - `voucher`: `{ type, channelConfig, voucher: { channelId, maxClaimableAmount, signature } }`.
 - `refund`: zero-charge voucher (`maxClaimableAmount == chargedCumulativeAmount`) plus optional `amount`.
 
@@ -143,7 +156,8 @@ Identical to EVM §"Server: State & Forwarding" with these AVM specifics:
    `withdrawRequestedAt + withdrawDelay − safetyMargin`, and MUST claim outstanding vouchers before then.
 7. Deposit groups: before signing as fee payer, verify group size, order, app id, method selector,
    argument equality with `channelConfig`, `axfer` fields, no rekey/close fields on any txn, and a
-   fee cap. Simulate before submitting.
+   fee cap. Simulate before submitting. (Not exercised by this reference implementation, which never
+   acts as fee payer for a deposit — see rule 7 of §5.2.)
 
 ## 7. Client rules
 
