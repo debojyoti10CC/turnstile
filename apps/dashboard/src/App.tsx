@@ -7,6 +7,19 @@ import { AdversaryPanel } from './AdversaryPanel.js';
 const CHANNELS_POLL_MS = 3000;
 const STATIC_POLL_MS = 10000; // bench.json / report.json only change when those CLIs are rerun
 
+// CAIP-2 ids for Algorand MainNet/TestNet (first 32 chars of the url-safe b64
+// genesis hash) -- mirrors @turnstile/core's CAIP2 constants. Anything else
+// is LocalNet: its genesis hash is regenerated per `algokit localnet reset`,
+// so there's no fixed id to match against.
+const CAIP2_MAINNET = 'algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k';
+const CAIP2_TESTNET = 'algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe';
+
+function networkLabel(caip2: string): string {
+  if (caip2 === CAIP2_MAINNET) return 'Algorand MainNet';
+  if (caip2 === CAIP2_TESTNET) return 'Algorand TestNet';
+  return 'Algorand LocalNet';
+}
+
 export default function App() {
   const [channels, setChannels] = useState<ChannelsResponse | null>(null);
   const [bench, setBench] = useState<BenchRun[] | null>(null);
@@ -44,13 +57,18 @@ export default function App() {
       <header>
         <h1>Turnstile</h1>
         <span className="subtitle">x402 batch-settlement for Algorand</span>
+        {channels && (
+          <span className={`network-badge ${networkLabel(channels.network).endsWith('MainNet') ? 'mainnet' : ''}`} title={channels.network}>
+            {networkLabel(channels.network)}
+          </span>
+        )}
         <span className={`status ${connected ? 'ok' : 'bad'}`}>
           {connected ? `connected — ${MERCHANT_URL}` : `cannot reach ${MERCHANT_URL}`}
         </span>
       </header>
 
       <section>
-        <h2>Channels {channels ? `(app ${channels.appId}, ${channels.network})` : ''}</h2>
+        <h2>Channels {channels ? `(app ${channels.appId})` : ''}</h2>
         <ChannelsPanel data={channels} />
       </section>
 

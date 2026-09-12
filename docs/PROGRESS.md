@@ -5,12 +5,12 @@
 | Pre-work | ✅ | Contract compiles, 25 offline tests (incl. fuzz + TS parity), core lib + vectors, spec draft |
 | P0 Scaffold | ✅ | refs cloned, workspace installed, spec-notes written, localnet skip-guard added |
 | P1 Contract on LocalNet + escrow client | ✅ | deploy script, 6 real-tx LocalNet invariant tests, `packages/escrow-client` (TS tx builders) all done and verified against real transactions |
-| P2 Plugin client + server | 🟡 | core verify/charge path + client scheme done and tested (scoped per DECISIONS.md); facilitator package, full corrective-402 wire plumbing through real @x402/core HTTP stack, and file/SQLite storage backends not yet built |
+| P2 Plugin client + server | ✅ | core verify/charge path + client scheme done and tested; facilitator package built in P3; `SqliteChannelStorage` closes the storage-backend gap (2026-09-12) |
 | P3 Facilitator + demo apps | ✅ | facilitator, demo-merchant, demo-agent all built and run for real on LocalNet: 200/200 dynamic-priced calls through one channel, agent/merchant state agree exactly |
-| P4 Settler | ✅ | threshold/periodic/on-withdraw claim policies + settle, verified against real LocalNet (I8) |
+| P4 Settler | ✅ | threshold/periodic/on-withdraw claim policies + settle, verified against real LocalNet (I8); standalone `apps/settler` service added and verified live (2026-09-12) |
 | P5 Adversary | ✅ | 24/24 attacks correctly rejected (18 contract + 5 server + 500-step fuzz), real LocalNet, found and fixed one real gap |
-| P6 Bench + dashboard + TestNet | ⬜ | |
-| P7 Spec + docs | ⬜ | |
+| P6 Bench + dashboard + TestNet | ✅ | real bench numbers (N=50/200/1000), React/Vite dashboard verified in a browser, TestNet deployment verified live end-to-end |
+| P7 Spec + docs | ✅ | spec finalized against the real build; README rewritten as a full professional reference with links |
 
 ## Log
 <!-- newest first: date — phase — what changed — what's next — risks -->
@@ -472,3 +472,24 @@
   offset to 0 (with the same latching-transaction pattern used to set
   it) once it's done. Reran everything after the fix: 31 + 67 + 24/24,
   all green.
+
+- **2026-09-12 — Closed the last two documented gaps: persistent SQLite
+  storage and a standalone settler service.** `packages/x402-avm-batch` gained
+  `SqliteChannelStorage` (Node's built-in `node:sqlite`, no native build step
+  — `better-sqlite3` failed to compile on this machine, see docs/DECISIONS.md),
+  wired into `apps/demo-merchant` via `CHANNEL_DB_PATH`. New `apps/settler`
+  is a standalone long-running process wrapping `packages/settler`'s
+  already-tested policies. Both verified live, not just built: fresh
+  LocalNet deploy, merchant started with `CHANNEL_DB_PATH` set, 15 real paid
+  `/v1/infer` calls, then `apps/settler` started as a *separate* process
+  reading the same SQLite file — it claimed 18,000 and settled 18,000 atomic
+  units in two real on-chain transactions on its own poll timer. Full suite
+  rerun after: 31 Python + 42 TypeScript (6 new SQLite storage tests) + 24/24
+  adversary, all green. README rewritten as a full professional reference
+  (badges, ToC, mermaid architecture including the settler/storage sharing,
+  full spec/reference links, tech stack, license note).
+  **What's next:** nothing outstanding from CLAUDE.md's phase list. Remaining
+  optional items (fee-payer sponsorship, real `@x402/avm` exact-facilitator
+  benchmark comparison, pending-request TTL reservation system, MainNet)
+  are documented limitations, not silent gaps.
+  **Risks:** none outstanding.

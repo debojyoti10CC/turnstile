@@ -9,7 +9,7 @@ import { paymentMiddleware, setSettlementOverrides } from '@x402/express';
 import type { Network } from '@x402/core/types';
 import { caip2FromGenesisHash, type Deployment } from '@turnstile/core';
 import { getAppClient, getChannel as escrowGetChannel } from '@turnstile/escrow-client';
-import { BatchSettlementAvmScheme, type OnchainMirror } from '@turnstile/x402-avm-batch';
+import { BatchSettlementAvmScheme, SqliteChannelStorage, type OnchainMirror } from '@turnstile/x402-avm-batch';
 
 const PORT = Number(process.env.MERCHANT_PORT ?? 4403);
 const APP_ID = BigInt(process.env.X402_AVM_APP_ID ?? '0');
@@ -18,6 +18,9 @@ const RECEIVER_ADDRESS = process.env.RECEIVER_ADDRESS ?? '';
 const RECEIVER_AUTHORIZER_ADDRESS = process.env.RECEIVER_AUTHORIZER_ADDRESS ?? RECEIVER_ADDRESS;
 const FACILITATOR_URL = process.env.FACILITATOR_URL ?? 'http://localhost:4402';
 const WITHDRAW_DELAY = Number(process.env.WITHDRAW_DELAY ?? 900);
+// Unset (the default) keeps the prior in-memory behavior, useful for tests
+// and short-lived demo runs; set it to persist channel state across restarts.
+const CHANNEL_DB_PATH = process.env.CHANNEL_DB_PATH ?? '';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../../');
@@ -56,7 +59,9 @@ async function main() {
     withdrawDelay: WITHDRAW_DELAY,
     fetchOnchain,
     network,
+    storage: CHANNEL_DB_PATH ? new SqliteChannelStorage(CHANNEL_DB_PATH) : undefined,
   });
+  if (CHANNEL_DB_PATH) console.log(`[demo-merchant] channel state persisted to ${CHANNEL_DB_PATH}`);
 
   const facilitator = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
   const resourceServer = new x402ResourceServer(facilitator).register(network, scheme);

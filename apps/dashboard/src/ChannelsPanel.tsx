@@ -37,7 +37,11 @@ export function ChannelsPanel({ data }: { data: ChannelsResponse | null }) {
         </thead>
         <tbody>
           {data.channels.map((c) => {
-            const exposure = BigInt(c.signedMaxClaimable) - BigInt(c.totalClaimed);
+            // Exposure is what the receiver has actually earned but not yet
+            // claimed on-chain (chargedCumulativeAmount - totalClaimed), not
+            // the pre-authorized ceiling the client signed (signedMaxClaimable) --
+            // that ceiling is shown separately in its own column.
+            const exposure = BigInt(c.chargedCumulativeAmount) - BigInt(c.totalClaimed);
             return (
               <tr key={c.channelId}>
                 <td title={c.channelId}>{short(c.channelId)}</td>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">
+  <rect x="0" y="0" width="720" height="320" fill="#fcfcfb" rx="8"/>
+  <text x="16" y="30" font-size="17" font-weight="700" fill="#1a1d24">Network fees by call volume — batch vs. exact</text>
+  <text x="16" y="48" font-size="12.5" fill="#5b6472">total µALGO spent on-chain to complete N paid requests through one channel (LocalNet, real transactions)</text>
+  
+    <rect x="512" y="20" width="12" height="12" rx="2" fill="#2f6fb0"/>
+    <text x="530" y="30" font-size="13" fill="#5b6472">batch</text>
+    <rect x="608" y="20" width="12" height="12" rx="2" fill="#c15f1d"/>
+    <text x="626" y="30" font-size="13" fill="#5b6472">exact</text>
+  <g>
+    <line x1="16" x2="704" y1="280.0" y2="280.0" stroke="#e4e6ea" stroke-width="1"/>
+    <line x1="16" x2="704" y1="227.0" y2="227.0" stroke="#e4e6ea" stroke-width="1"/>
+    <line x1="16" x2="704" y1="174.0" y2="174.0" stroke="#e4e6ea" stroke-width="1"/>
+    <line x1="16" x2="704" y1="121.0" y2="121.0" stroke="#e4e6ea" stroke-width="1"/>
+    <line x1="16" x2="704" y1="68.0" y2="68.0" stroke="#e4e6ea" stroke-width="1"/>
+    <text x="130.7" y="308" text-anchor="middle" font-size="14" fill="#1a1d24" font-weight="600">N=50</text>
+    <rect x="26.0" y="277.0" width="99.7" height="3.0" rx="4" fill="#2f6fb0"/>
+    <text x="75.8" y="269.0" text-anchor="middle" font-size="13" fill="#1a1d24" font-weight="600">3,000 µA</text>
+    <rect x="135.7" y="270.9" width="99.7" height="9.1" rx="4" fill="#c15f1d"/>
+    <text x="185.5" y="262.9" text-anchor="middle" font-size="13" fill="#1a1d24" font-weight="600">50,000 µA</text>
+<text x="360.0" y="308" text-anchor="middle" font-size="14" fill="#1a1d24" font-weight="600">N=200</text>
+    <rect x="255.3" y="277.0" width="99.7" height="3.0" rx="4" fill="#2f6fb0"/>
+    <text x="305.2" y="269.0" text-anchor="middle" font-size="13" fill="#1a1d24" font-weight="600">3,000 µA</text>
+    <rect x="365.0" y="243.5" width="99.7" height="36.5" rx="4" fill="#c15f1d"/>
+    <text x="414.8" y="235.5" text-anchor="middle" font-size="13" fill="#1a1d24" font-weight="600">200,000 µA</text>
+<text x="589.3" y="308" text-anchor="middle" font-size="14" fill="#1a1d24" font-weight="600">N=1000</text>
+    <rect x="484.7" y="277.0" width="99.7" height="3.0" rx="4" fill="#2f6fb0"/>
+    <text x="534.5" y="269.0" text-anchor="middle" font-size="13" fill="#1a1d24" font-weight="600">3,000 µA</text>
+    <rect x="594.3" y="97.7" width="99.7" height="182.3" rx="4" fill="#c15f1d"/>
+    <text x="644.2" y="89.7" text-anchor="middle" font-size="13" fill="#1a1d24" font-weight="600">1,000,000 µA</text>
+  </g>
+</svg>
