@@ -40,7 +40,12 @@ async function main() {
   }
   if (!RECEIVER_SENDER_ADDRESS) throw new Error('RECEIVER_SENDER_ADDRESS env var is required');
 
-  const algorand = process.env.NETWORK === 'testnet' ? AlgorandClient.testNet() : AlgorandClient.defaultLocalNet();
+  const algorand =
+    process.env.NETWORK === 'mainnet'
+      ? AlgorandClient.mainNet()
+      : process.env.NETWORK === 'testnet'
+        ? AlgorandClient.testNet()
+        : AlgorandClient.defaultLocalNet();
 
   if (RECEIVER_SENDER_PRIVATE_KEY) {
     // TestNet (or any network without a local KMD wallet holding this

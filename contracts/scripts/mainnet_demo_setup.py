@@ -36,8 +36,12 @@ ENV_PATH = pathlib.Path(__file__).resolve().parents[1] / ".env.mainnet"
 USDC_ASSET_ID = 31566704
 
 # Each needs 0.1 ALGO base min-balance + 0.1 ALGO for one ASA opt-in = 0.2
-# ALGO real floor; funded slightly above that for txn fee headroom.
-PAYER_FUNDING_MICRO_ALGO = 250_000
+# ALGO real floor. The payer additionally pays the new channel's one-time
+# box MBR as part of its first deposit (~121,000 microALGO -- channel box
+# 98,900 + unsettled box 22,100, see CLAUDE.md's box-MBR table) plus a few
+# transaction fees, which the original 250,000 target didn't budget for --
+# found by a real deposit attempt failing "balance below min" on MainNet.
+PAYER_FUNDING_MICRO_ALGO = 380_000
 RECEIVER_FUNDING_MICRO_ALGO = 230_000
 # Smallest amount worth demonstrating a real deposit + several vouchers +
 # claim + settle with, in USDC atomic units (6 decimals) -- 1.00 USDC.

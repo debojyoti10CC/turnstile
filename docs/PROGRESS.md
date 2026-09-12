@@ -543,3 +543,37 @@
   transaction ids to the README's MainNet table.
   **Risks:** none new. The MainNet contract remains unaudited, live, and
   currently holds no escrowed value.
+
+- **2026-09-12 — Full MainNet demo cycle completed with real value.**
+  Fixed a real gap first: `apps/{demo-agent,demo-merchant,facilitator,settler}`
+  had no MainNet branch in their network selection (`NETWORK=mainnet` fell
+  through to LocalNet silently) — added `AlgorandClient.mainNet()` support
+  to all four and rebuilt. The owner sent 1.00 real Algorand-native USDC
+  (Circle ASA `31566704`, distinct from their Ethereum USDC holdings — moving
+  between chains needs a bridge/exchange, which this agent cannot execute)
+  to a generated payer address. First real deposit attempt failed
+  on-chain (`balance below min`) — the demo-account funding script had
+  budgeted for the payer's own min-balance floor but missed the new
+  channel's one-time ~0.121 ALGO box MBR, paid from the same account in the
+  same deposit transaction group; raised the funding target and re-ran the
+  (idempotent) setup script, which topped the payer up from the deployer's
+  own leftover ALGO with no further funding needed from the owner.
+  Then ran the real thing: `apps/facilitator` + `apps/demo-merchant`
+  against MainNet, `apps/demo-agent` opened a real channel with a 0.3 USDC
+  deposit and made 3 real paid `/v1/infer` calls, and `apps/settler` —
+  started as a genuinely separate process, not a manual script — claimed
+  3,600 atomic units and settled them to the receiver's real wallet.
+  Verified independently against the public MainNet API: receiver balance
+  exactly 3,600 USDC atomic units; payer balance dropped from 1,000,000 to
+  exactly 700,000 (the 300,000 deposited, no more, no less — conservation
+  holds with real money). Every transaction id in the README's MainNet
+  table was pulled from the receiver's own on-chain transaction history via
+  the public indexer, not copied from any script's stdout.
+  **What's next:** nothing outstanding — this closes the loop the owner
+  asked for ("show transacts"). The channel remains open on MainNet with
+  296,400 atomic units still escrowed (300,000 deposit − 3,600 claimed);
+  the payer can keep paying against it, or initiate a withdraw after the
+  900s delay to recover the remainder.
+  **Risks:** none new. Real money is now flowing through an unaudited
+  contract on MainNet, entirely by the owner's own informed, explicit
+  choice, recorded across this log and docs/DECISIONS.md.

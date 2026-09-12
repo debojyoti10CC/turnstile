@@ -11,7 +11,12 @@ export interface FacilitatorChainConfig {
 }
 
 export async function setupChain(config: FacilitatorChainConfig) {
-  const algorand = process.env.NETWORK === 'testnet' ? AlgorandClient.testNet() : AlgorandClient.defaultLocalNet();
+  const algorand =
+    process.env.NETWORK === 'mainnet'
+      ? AlgorandClient.mainNet()
+      : process.env.NETWORK === 'testnet'
+        ? AlgorandClient.testNet()
+        : AlgorandClient.defaultLocalNet();
   const appClient: AppClient = getAppClient(algorand, config.appId);
 
   const params = await algorand.client.algod.getTransactionParams().do();

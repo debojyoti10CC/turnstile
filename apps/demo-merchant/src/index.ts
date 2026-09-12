@@ -40,7 +40,12 @@ async function main() {
     throw new Error('X402_AVM_APP_ID, X402_AVM_ASSET_ID, RECEIVER_ADDRESS env vars are required');
   }
 
-  const algorand = process.env.NETWORK === 'testnet' ? AlgorandClient.testNet() : AlgorandClient.defaultLocalNet();
+  const algorand =
+    process.env.NETWORK === 'mainnet'
+      ? AlgorandClient.mainNet()
+      : process.env.NETWORK === 'testnet'
+        ? AlgorandClient.testNet()
+        : AlgorandClient.defaultLocalNet();
   const appClient = getAppClient(algorand, APP_ID);
   const params = await algorand.client.algod.getTransactionParams().do();
   const deployment: Deployment = { genesisHash: params.genesisHash, appId: APP_ID };

@@ -264,10 +264,10 @@ deployer is funded, as a second, deliberate gate.
 
 **Live:** app `3703998610`, app account
 [`53VIOBJWKTCMEWC5SFN4AI5PF2PEICJWUTPKAFHIL44DMZXF43C4UY5CL4`](https://allo.info/account/53VIOBJWKTCMEWC5SFN4AI5PF2PEICJWUTPKAFHIL44DMZXF43C4UY5CL4),
-opted into USDC (`31566704`), verified independently against the public MainNet API — see
-[`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/DECISIONS.md`](docs/DECISIONS.md) for the full
-record. No channel has been opened and no USDC has moved; that needs a real payer, receiver, and USDC
-deposit, which is a separate, deliberate step this deploy did not take.
+opted into USDC (`31566704`). A full deposit → paid calls → claim → settle cycle has since run
+against it with real USDC — see [Live deployments & transaction log](#live-deployments--transaction-log)
+below for every transaction id, and [`docs/PROGRESS.md`](docs/PROGRESS.md) /
+[`docs/DECISIONS.md`](docs/DECISIONS.md) for the full narrative.
 
 ## Live deployments & transaction log
 
@@ -297,9 +297,11 @@ matching exactly).
 
 ### MainNet — app [`3703998610`](https://lora.algokit.io/mainnet/application/3703998610)
 
-Contract deployment and demo-account setup, funded by the repository owner's own wallet. No channel
-has been opened yet — that step needs real Algorand-native USDC (a different token instance from
-Ethereum USDC, even though both are Circle-issued), which is pending as of this log.
+Full end-to-end flow completed with real value: deploy → fund demo accounts → deposit 0.3 real USDC
+→ 3 real paid `/v1/infer` calls (off-chain vouchers, no per-call transaction) → claim → settle. The
+receiver's wallet held exactly 3,600 USDC atomic units (0.0036 USDC) after settlement, matching the
+signed voucher precisely, and the payer's wallet dropped from 1,000,000 to 700,000 USDC atomic units
+— exactly the 300,000 deposited, confirming conservation end to end.
 
 | Step | Transaction |
 |---|---|
@@ -310,10 +312,13 @@ Ethereum USDC, even though both are Circle-issued), which is pending as of this 
 | Deployer topped up (0.5 ALGO) | [`37NTCHS3QOO55XQXPYRJKQO6T7IRI3X444DH54TBA7PFQ4AHLDZQ`](https://lora.algokit.io/mainnet/transaction/37NTCHS3QOO55XQXPYRJKQO6T7IRI3X444DH54TBA7PFQ4AHLDZQ) |
 | Demo payer funded + USDC opt-in | [`SSLVA7R2I7CAHRDOFD2TMNOYOBNRRNJNMHKQKVU4ONHITAQISKVQ`](https://lora.algokit.io/mainnet/transaction/SSLVA7R2I7CAHRDOFD2TMNOYOBNRRNJNMHKQKVU4ONHITAQISKVQ), [`QT4OUHQ3POXA3WNDJU5E6PWBMQKZZQKPYQSC72LMP3Y7MHVYKG6Q`](https://lora.algokit.io/mainnet/transaction/QT4OUHQ3POXA3WNDJU5E6PWBMQKZZQKPYQSC72LMP3Y7MHVYKG6Q) — payer [`BJL3KICSXZ2GAEABXEIYN2SRVJ6K7WJUHSNYP2QJTEJPTT5IFNSQZULB5I`](https://allo.info/account/BJL3KICSXZ2GAEABXEIYN2SRVJ6K7WJUHSNYP2QJTEJPTT5IFNSQZULB5I) |
 | Demo receiver funded + USDC opt-in | [`EGHJX6ARY5HNB2DQUM3FUDQBVJX3646MXTP3EYQ7HHOZW3HA74OA`](https://lora.algokit.io/mainnet/transaction/EGHJX6ARY5HNB2DQUM3FUDQBVJX3646MXTP3EYQ7HHOZW3HA74OA), [`CPM72KAEEOSXVQ4PFMA3FYSV6UVMQIYPW5FCGXU2RQKKMVDKQSTQ`](https://lora.algokit.io/mainnet/transaction/CPM72KAEEOSXVQ4PFMA3FYSV6UVMQIYPW5FCGXU2RQKKMVDKQSTQ) — receiver [`IZDWCXAOF755MKS4T6GUWBSZUI6WRAHFF5R2FOP452O5ORYRBCKWLJ2TLU`](https://allo.info/account/IZDWCXAOF755MKS4T6GUWBSZUI6WRAHFF5R2FOP452O5ORYRBCKWLJ2TLU) |
+| Payer topped up (channel box MBR headroom) | [`4VYV4XUO7JORPL3IIL2PY2I6MORUQKMCRW45DNPAVCOEMFTIS2PA`](https://lora.algokit.io/mainnet/transaction/4VYV4XUO7JORPL3IIL2PY2I6MORUQKMCRW45DNPAVCOEMFTIS2PA) |
+| **Channel deposit** (0.3 USDC + 0.121 ALGO channel box MBR, grouped) | [`MISW6IRT4NTZ2VQGWSDPJEXCNXDUOXOV7BT7H45BFTRMCP7IU44Q`](https://lora.algokit.io/mainnet/transaction/MISW6IRT4NTZ2VQGWSDPJEXCNXDUOXOV7BT7H45BFTRMCP7IU44Q) |
+| **Batch claim** (3 real paid `/v1/infer` calls' cumulative voucher, 3,600 atomic units) | [`DKF7WKYSRUGLWUT7TW7CMKKP5V6OROTK6G7SPTDOAAWV43QI7FRQ`](https://lora.algokit.io/mainnet/transaction/DKF7WKYSRUGLWUT7TW7CMKKP5V6OROTK6G7SPTDOAAWV43QI7FRQ) |
+| **Settle** (sweeps claimed balance to receiver's real wallet) | [`7AGQT2IHEYQFT2R54T6SUKMZKEYU4ECAFP3ELQNNCEFZYQQ55W3A`](https://lora.algokit.io/mainnet/transaction/7AGQT2IHEYQFT2R54T6SUKMZKEYU4ECAFP3ELQNNCEFZYQQ55W3A) |
 
-`deposit` / `claim` / `settle` rows will be added here once the demo payer holds real Algorand USDC
-and a channel is actually opened — this table is updated as real transactions land, never
-pre-populated with expected ones.
+The claim and settle above were run by [`apps/settler`](apps/settler) as a genuinely independent
+process, not manually — the same standalone service anyone deploying this in production would run.
 
 ## Testing & verification
 
