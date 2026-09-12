@@ -12,10 +12,9 @@ npm install @turnstile/escrow-client @algorandfoundation/algokit-utils algosdk
 Every builder passes explicit box/account/asset references rather than relying on algokit-utils'
 simulate-based auto-population — this is deliberate (not an oversight): auto-discovery for an ABI
 method call intermittently misreports a `group fee too small` error instead of the real
-missing-resource error on this algod/algokit-utils pairing. See
-[`docs/DECISIONS.md`](../../docs/DECISIONS.md) for the full story. If you're building your own
-transaction against this contract, compute references the same explicit way — don't trust
-`allowUnnamedResources` blindly at submit time.
+missing-resource error on this algod/algokit-utils pairing. If you're building your own transaction
+against this contract, compute references the same explicit way — don't trust `allowUnnamedResources`
+blindly at submit time.
 
 ## Quickstart
 
@@ -62,7 +61,7 @@ const state = await getChannel(algorand, appClient, channelId);
 | `channelBoxName(channelId)` / `unsettledBoxName(receiver, assetId)` | Box-key builders, exported so callers computing their own resource references don't have to reimplement the layout |
 | `configToTuple(config)` | `ChannelConfig` → the ARC-4 tuple shape the contract's ABI methods expect |
 | `claimOpUpExtraFee(rows)` | The extra fee (in `AlgoAmount`) a `claimBatch` call must pool to cover opcode-budget op-ups |
-| `MAX_CLAIM_ROWS_PER_CALL` (4) / `MAX_CLAIM_ROWS_PER_CALL_SAME_RECEIVER` (7) / `MAX_APP_CALL_FOREIGN_REFERENCES` (8) | Batch-size constants, found empirically against real LocalNet transactions — see [`docs/DECISIONS.md`](../../docs/DECISIONS.md) for how |
+| `MAX_CLAIM_ROWS_PER_CALL` (4) / `MAX_CLAIM_ROWS_PER_CALL_SAME_RECEIVER` (7) / `MAX_APP_CALL_FOREIGN_REFERENCES` (8) | Batch-size constants, found empirically against real LocalNet transactions (see [A note on batch size](#a-note-on-batch-size) below) |
 
 Full parameter shapes (`DepositParams`, `ClaimParams`/`ClaimRow`, `SettleParams`, `RefundParams`,
 `InitiateWithdrawParams`/`FinalizeWithdrawParams`, `ChannelState`/`ChannelView`) are in the shipped

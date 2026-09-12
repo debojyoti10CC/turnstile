@@ -1,13 +1,13 @@
 # Scheme: `batch-settlement` on `AVM` (Algorand)
 
 > Status: **draft v0.2** (Turnstile) — verified against a working reference implementation (contract,
-> TypeScript SDK, facilitator, demo merchant/agent, 24/24-attack adversary suite, and a live deployment
-> on Algorand TestNet; see `docs/PROGRESS.md`). Companion to the network-agnostic
-> [`scheme_batch_settlement.md`](../reference/scheme_batch_settlement.md). Structure and field names
-> mirror the EVM and SVM bindings ([evm](../reference/scheme_batch_settlement_evm.md),
+> TypeScript SDK, facilitator, demo merchant/agent, 24/24-attack adversary suite, and live deployments
+> on Algorand TestNet and MainNet — see the top-level README's transaction log). Companion to the
+> network-agnostic [`scheme_batch_settlement.md`](../reference/scheme_batch_settlement.md). Structure
+> and field names mirror the EVM and SVM bindings ([evm](../reference/scheme_batch_settlement_evm.md),
 > [svm](../reference/scheme_batch_settlement_svm.md)) so this document can be upstreamed as
 > `specs/schemes/batch-settlement/scheme_batch_settlement_avm.md`. Known deviations from this document
-> in the reference implementation are called out inline and tracked in `docs/DECISIONS.md`.
+> in the reference implementation are called out inline below.
 > Reference contract: `contracts/smart_contracts/x402_batch_settlement/contract.py`.
 
 ## 1. Summary
@@ -79,7 +79,7 @@ Fees: all inner transactions use fee 0; the outer transaction pools fees. `claim
 
 One `claim` call's row count is bounded by Algorand's per-transaction box-reference limit
 (`MAX_APP_CALL_FOREIGN_REFERENCES = 8`), not by opcode budget (empirically never the binding
-constraint — see `docs/DECISIONS.md`, 2026-09-11). Each row needs its own channel box plus one
+constraint, verified against real transactions). Each row needs its own channel box plus one
 shared unsettled-balance box per distinct receiver, so the exact cap is 7 rows when every row
 shares a receiver (`MAX_CLAIM_ROWS_PER_CALL_SAME_RECEIVER`) down to 4 when every row has a
 different receiver (`MAX_CLAIM_ROWS_PER_CALL`); `@turnstile/escrow-client`'s `claimBatch` enforces
@@ -128,7 +128,7 @@ corrective 402s (as in EVM/SVM).
   if it funds MBR). The spec permits a sponsored variant where `extra.feePayer` is set and the appl
   sender is a fee payer who co-signs after validation (same pattern as `exact` on Algorand); **this
   reference implementation does not use it** — the client/agent submits its own fully-signed deposit
-  group directly (see `docs/DECISIONS.md`), so `extra.feePayer` is always absent on the wire here.
+  group directly, so `extra.feePayer` is always absent on the wire here.
 - `voucher`: `{ type, channelConfig, voucher: { channelId, maxClaimableAmount, signature } }`.
 - `refund`: zero-charge voucher (`maxClaimableAmount == chargedCumulativeAmount`) plus optional `amount`.
 

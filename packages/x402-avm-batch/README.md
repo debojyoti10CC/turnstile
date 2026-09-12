@@ -152,11 +152,10 @@ type level; there is no separate types package to keep in sync.
 
 - Mirrors the official EVM `batch-settlement` mechanism's structure and naming; where AVM specifics
   force a difference (box-reference batch-size limits instead of opcode-budget math, no fee-payer
-  sponsorship yet), it's called out in [`docs/spec-notes.md`](../../docs/spec-notes.md).
+  sponsorship yet), it's called out inline in [the protocol spec](../../docs/spec/scheme_batch_settlement_avm.md).
 - Deliberately does **not** include the EVM reference's pending-request TTL reservation system or an
   auto claim/settle/refund loop — that loop is [`@turnstile/settler`](../settler), kept as a
   separate concern so the scheme itself has no timers or background state.
-- Every design deviation from the spec, and why, is logged in [`docs/DECISIONS.md`](../../docs/DECISIONS.md).
 
 ## Testing
 

@@ -18,14 +18,15 @@ requests funded it.
 
 It ships as:
 
-- a small, audited-style **Algorand Python smart contract** (escrow channels, ARC-56),
+- a small, heavily tested **Algorand Python smart contract** (escrow channels, ARC-56) — see
+  [MainNet](#mainnet) for its current audit status before relying on it with real funds,
 - a **plugin for the official [`@x402/*`](https://github.com/x402-foundation/x402) TypeScript SDK**
   (`SchemeNetworkClient` / `Server` / `Facilitator`), so it drops into `@x402/express` and `@x402/fetch`
   the same way `exact` does,
 - a **draft protocol spec** ([`docs/spec/scheme_batch_settlement_avm.md`](docs/spec/scheme_batch_settlement_avm.md))
   written against this implementation and intended for upstreaming to x402-foundation/x402,
 - and a full **demo stack** (facilitator, merchant, agent, standalone settler service, read-only
-  dashboard) that runs end-to-end on LocalNet and TestNet.
+  dashboard) verified end-to-end on LocalNet, TestNet, and MainNet.
 
 > **Measured, not claimed.** At 1,000 calls through one channel, batch-settlement used **3 on-chain
 > transactions and 3,000 µALGO in total network fees**, versus 1,000 transactions / 1,000,000 µALGO for
@@ -78,7 +79,7 @@ It ships as:
 - **A read-only dashboard** (React/Vite) showing live channel state, the real benchmark, and the real
   adversary report — nothing on it is synthesized for display.
 - **12 named, tested invariants** (I1–I12) covering balance safety, replay-proofness, role checks, and
-  exit guarantees — see [`CLAUDE.md`](CLAUDE.md#9-invariants-acceptance-tests).
+  exit guarantees — see [Security model](#security-model) and the [protocol spec](docs/spec/scheme_batch_settlement_avm.md#8-security).
 
 ---
 
@@ -137,7 +138,7 @@ turnstile/
 │  ├─ smart_contracts/x402_batch_settlement/   contract.py, generated ARC-56/TEAL/bytecode
 │  ├─ tests/                     25 offline tests (algorand-python-testing emulator)
 │  ├─ tests/localnet/            6 tests against real transactions on a live node
-│  └─ scripts/deploy.py, deploy_testnet.py
+│  └─ scripts/deploy.py, deploy_testnet.py, deploy_mainnet.py
 ├─ packages/
 │  ├─ core/                      voucher & channel-id encoding, ed25519, Algorand address codec, wire types
 │  ├─ escrow-client/             typed ARC-56 client + tx builders (deposit, claim, settle, refund, withdraw)
@@ -153,9 +154,7 @@ turnstile/
 └─ docs/
    ├─ spec/scheme_batch_settlement_avm.md   the protocol binding this repo implements
    ├─ reference/                             vendored upstream x402 specs (Apache-2.0)
-   ├─ PROGRESS.md                            phase-by-phase build log with real measured results
-   ├─ DECISIONS.md                           every non-obvious engineering decision and why
-   ├─ spec-notes.md, RESOURCES.md, DEMO.md
+   └─ assets/                                generated benchmark charts (scripts/gen-bench-charts.mjs)
 ```
 
 ## SDK packages
@@ -243,16 +242,16 @@ Verified live: app [`771555042`](https://lora.algokit.io/testnet/application/771
 `771555032` on genesis `SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe` — real deposit, 3 real paid calls, real
 claim (settled exactly 3,600 atomic units to the receiver). Every transaction id is in
 [Live deployments & transaction log](#live-deployments--transaction-log) below, independently
-re-verified against the public TestNet indexer, not just recorded in [`docs/PROGRESS.md`](docs/PROGRESS.md).
+verified against the public TestNet indexer.
 
 ## MainNet
 
 > **This contract has no external security audit.** It has passed 25 offline tests, 6+ real-LocalNet
 > invariant tests, and a 24/24 real-transaction adversary suite — see [Testing & verification](#testing--verification)
-> — but that is not a substitute for independent review. MainNet deployment happened with the
-> repository owner's explicit, informed sign-off, recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md)
-> per [`CLAUDE.md`](CLAUDE.md) §4 P7's escape hatch. Treat any MainNet use of this contract as
-> unaudited software holding real funds.
+> — but that is not a substitute for independent review. It is deployed to MainNet with the repository
+> owner's explicit, informed acceptance of that risk. Treat any MainNet use of this contract as
+> unaudited software holding real funds, and get an independent audit before relying on it for
+> anything beyond a small, deliberate amount.
 
 ```bash
 MAINNET_DEPLOY_CONFIRM=yes pnpm deploy:mainnet   # contracts/scripts/deploy_mainnet.py
@@ -268,8 +267,7 @@ deployer is funded, as a second, deliberate gate.
 [`53VIOBJWKTCMEWC5SFN4AI5PF2PEICJWUTPKAFHIL44DMZXF43C4UY5CL4`](https://allo.info/account/53VIOBJWKTCMEWC5SFN4AI5PF2PEICJWUTPKAFHIL44DMZXF43C4UY5CL4),
 opted into USDC (`31566704`). A full deposit → paid calls → claim → settle cycle has since run
 against it with real USDC — see [Live deployments & transaction log](#live-deployments--transaction-log)
-below for every transaction id, and [`docs/PROGRESS.md`](docs/PROGRESS.md) /
-[`docs/DECISIONS.md`](docs/DECISIONS.md) for the full narrative.
+below for every transaction id.
 
 ## Live deployments & transaction log
 
@@ -307,9 +305,8 @@ per-call transaction) → claim → settle. Genesis `SGO1GKSzyE7IEPItTxCByw9x8Fm
 | Settle | `settle` | [`PKWTE6Z4NIVTKCBXVZ2U5TM2LFFYLFQXTA6QGSPAVXHLZ3A4E4TQ`](https://lora.algokit.io/testnet/transaction/PKWTE6Z4NIVTKCBXVZ2U5TM2LFFYLFQXTA6QGSPAVXHLZ3A4E4TQ) |
 
 The 3 paid `/v1/infer` requests between `deposit` and `claim` are deliberately **not** on-chain
-transactions — that's the entire point of batch-settlement. `docs/PROGRESS.md` has the off-chain
-numbers (agent-local `chargedCumulativeAmount` vs. the merchant's own ledger vs. on-chain state, all
-matching exactly).
+transactions — that's the entire point of batch-settlement. Agent-local `chargedCumulativeAmount`,
+the merchant's own ledger, and on-chain state all matched exactly at every step.
 
 ### MainNet — app [`3703998610`](https://lora.algokit.io/mainnet/application/3703998610)
 
@@ -346,21 +343,21 @@ Every layer has real, non-mocked tests. Nothing below is simulated data.
 | Contract (real node) | `pnpm contracts:localnet` | 6 tests against real transactions on a live LocalNet node — fees, box MBR, opcode budget, real signatures |
 | TypeScript packages | `pnpm -r test` | 42 tests across `core`, `escrow-client` (real on-chain lifecycle), `x402-avm-batch` (incl. SQLite storage + 50-concurrent-request I12), `settler` (incl. I8 on real LocalNet) |
 | Attack suite | `pnpm adversary` | 24 attacks — 18 contract-level, 5 server-level, a 500-step fuzz — every one must be **rejected**; writes `packages/adversary/report.json` |
-| Definition of done | `pnpm contracts:test && pnpm contracts:localnet && pnpm -r test && pnpm adversary && pnpm bench` | the project's own bar for "done", per [`CLAUDE.md`](CLAUDE.md) §10 |
+| Full bar | `pnpm contracts:test && pnpm contracts:localnet && pnpm -r test && pnpm adversary && pnpm bench` | everything green is this project's bar for "done" |
 
 All twelve invariants (I1–I12: balance bounds, monotonicity, conservation, replay-proofness, role
-checks, exit guarantees, and more) have a named passing test — see the table in
-[`CLAUDE.md`](CLAUDE.md#9-invariants-acceptance-tests) for the full list and where each is verified.
+checks, exit guarantees, and more) have a named passing test somewhere in the suites above — see
+[Security model](#security-model) below for what each invariant guarantees and where it's enforced.
 
 ## Benchmarks
 
 `pnpm bench` runs N ∈ {50, 200, 1000} against real LocalNet, comparing batch-settlement to a naive
-one-real-transaction-per-call baseline — what any non-batched, settle-every-request scheme costs
-on-chain (see [`docs/DECISIONS.md`](docs/DECISIONS.md) for why that's the fairer comparison than one
-specific facilitator implementation). Charts and table below are generated directly from the most
-recent real run — [`apps/demo-agent/bench.json`](apps/demo-agent/bench.json), also recorded in
-[`docs/PROGRESS.md`](docs/PROGRESS.md) — via [`scripts/gen-bench-charts.mjs`](scripts/gen-bench-charts.mjs);
-regenerate them with `node scripts/gen-bench-charts.mjs` any time `bench.json` changes.
+one-real-transaction-per-call baseline — the fee/latency cost any non-batched, settle-every-request
+scheme pays on-chain, chain-implementation-agnostic rather than tied to one specific facilitator.
+Charts and table below are generated directly from the most recent real run
+([`apps/demo-agent/bench.json`](apps/demo-agent/bench.json)) via
+[`scripts/gen-bench-charts.mjs`](scripts/gen-bench-charts.mjs); regenerate them with
+`node scripts/gen-bench-charts.mjs` any time `bench.json` changes.
 
 <p align="center">
   <img src="docs/assets/bench-fees.svg" width="100%" alt="Network fees by call volume: batch-settlement flat at 3,000 µALGO regardless of N; exact scales linearly to 1,000,000 µALGO at N=1000">
@@ -406,8 +403,8 @@ consistently lower for batch at every N — a local signature check beats waitin
   instantly — invariant **I8**, verified against a real withdraw race in `packages/settler`'s LocalNet
   test and again live in this session with the standalone `apps/settler` service.
 - **Box-reference limits, not opcode budget, cap batch size.** `claim()`'s row limit comes from
-  Algorand's `MAX_APP_CALL_FOREIGN_REFERENCES = 8`, not the opcode-budget math the original design
-  assumed — discovered and documented in [`docs/DECISIONS.md`](docs/DECISIONS.md).
+  Algorand's `MAX_APP_CALL_FOREIGN_REFERENCES = 8`, verified empirically against real transactions —
+  see [`packages/escrow-client`](packages/escrow-client#a-note-on-batch-size).
 - **`ed25519verify_bare`, not `ed25519verify`.** The AVM opcode that skips the `ProgData`/program-hash
   prefix, matching the voucher message format exactly (see [the spec](docs/spec/scheme_batch_settlement_avm.md)).
 
@@ -417,13 +414,14 @@ consistently lower for batch at every N — a local signature check beats waitin
   fee payer; this implementation always has the client submit its own fully-signed deposit with its own
   keys. A real wallet-driven agent (no direct chain access) would need this wired up.
 - **`exact`-scheme benchmark comparison is a naive baseline** (one direct asset transfer per call), not
-  `@x402/avm`'s real exact-scheme facilitator, which pins an alpha `algokit-utils` release this
-  workspace deliberately avoids (see [`docs/DECISIONS.md`](docs/DECISIONS.md)). It still represents the
-  real on-chain cost of any non-batched, pay-per-request scheme.
+  `@x402/avm`'s real exact-scheme facilitator, which pins an `algokit-utils` alpha release this
+  workspace deliberately avoids to stay on the stable API. It still represents the real on-chain cost
+  of any non-batched, pay-per-request scheme.
 - **Dashboard is read-only and single-merchant.** It polls one merchant's `/debug/*` endpoints; there's
   no multi-merchant aggregation.
-- **Escrow contract is TestNet-only.** MainNet deployment needs a reviewed `exact` fallback and explicit
-  team sign-off per [`CLAUDE.md`](CLAUDE.md) §4 (P7) — deliberately not attempted here.
+- **No fee-payer sponsorship for a MainNet `exact` fallback route.** This repo focuses entirely on the
+  `batch-settlement` scheme; a production deployment offering `exact` as a fallback would need its own
+  facilitator, reviewed separately.
 - **No pending-request TTL reservation system.** The EVM reference reserves a request's ceiling before
   running the handler to avoid holding a lock across arbitrary execution time; this implementation uses
   a simpler atomic commit-time check that preserves I9/I12 correctness (verified up to 50 concurrent
@@ -438,8 +436,6 @@ consistently lower for batch at every N — a local signature check beats waitin
   [`docs/reference/scheme_batch_settlement.md`](docs/reference/scheme_batch_settlement.md)) ·
   [EVM binding](docs/reference/scheme_batch_settlement_evm.md) (primary template for this repo) ·
   [SVM binding](docs/reference/scheme_batch_settlement_svm.md) (closest analogue: ed25519 vouchers)
-- **Full resource index** (specs, reference code paths, package versions, Algorand docs on opcodes,
-  boxes/MBR, and resource limits): [`docs/RESOURCES.md`](docs/RESOURCES.md)
 - **Algorand developer docs:** [dev.algorand.co](https://dev.algorand.co) ·
   [Algorand Python (Puya)](https://dev.algorand.co/algokit/languages/python/overview/) ·
   [Boxes & MBR](https://dev.algorand.co/concepts/smart-contracts/storage/box/) ·
@@ -467,25 +463,23 @@ Contributions, issues, and discussion are welcome — please open one on
 
 Before sending a change:
 
-1. Read [`CLAUDE.md`](CLAUDE.md) — the full build brief: phases, invariants, contract facts, and known
-   AVM pitfalls. It's the source of truth for how this project makes decisions.
-2. Check [`docs/DECISIONS.md`](docs/DECISIONS.md) — every non-obvious engineering call and the
-   reasoning behind it (version pins, scope cuts, bugs found and fixed, benchmark methodology). Don't
-   re-decide something that was already decided for a documented reason; if you disagree with a past
-   decision, say why and add a new entry rather than silently reverting it.
-3. Keep the contract small and boring. Any change to
+1. Read [`docs/spec/scheme_batch_settlement_avm.md`](docs/spec/scheme_batch_settlement_avm.md) — the
+   protocol binding this implementation follows. Wire formats, server/client rules, and error codes
+   all trace back to it.
+2. Keep the contract small and boring. Any change to
    `contracts/smart_contracts/x402_batch_settlement/contract.py` needs: updated offline tests
    (`pnpm contracts:test`), updated LocalNet tests (`pnpm contracts:localnet`), a regenerated ARC-56
-   spec + typed client, regenerated golden vectors if the wire encoding changed
-   (`packages/core/scripts/gen-vectors.ts`), and a `docs/DECISIONS.md` entry.
-4. Run the full bar before opening a PR: `pnpm contracts:test && pnpm contracts:localnet && pnpm -r test
+   spec + typed client, and regenerated golden vectors if the wire encoding changed
+   (`packages/core/scripts/gen-vectors.ts`).
+3. Run the full bar before opening a PR: `pnpm contracts:test && pnpm contracts:localnet && pnpm -r test
    && pnpm adversary` (LocalNet must be running: `algokit localnet start`). A new attack vector belongs
    in `packages/adversary`, not just a unit test — it should be demonstrably rejected on a real node.
-5. Update [`docs/PROGRESS.md`](docs/PROGRESS.md) with what changed, what's next, and any risk — this
-   repo's convention is real, dated log entries with measured results, never placeholder numbers.
+4. Keep every claim backed by something reproducible — a real transaction id, a committed test, a file
+   a CLI actually wrote. This repo has no tolerance for fabricated benchmark numbers or unverified
+   on-chain claims.
 
-No formal style guide beyond what's in `CLAUDE.md` §8 (TypeScript strict, no `any`, amounts as `bigint`
-internally / decimal strings on the wire, pure functions in core, side effects at the edges).
+Style: TypeScript strict, no `any`, amounts as `bigint` internally / decimal strings on the wire, pure
+functions in [`packages/core`](packages/core), side effects pushed to the edges (apps, not packages).
 
 ## Acknowledgments
 

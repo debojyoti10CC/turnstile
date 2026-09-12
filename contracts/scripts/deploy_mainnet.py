@@ -145,8 +145,8 @@ def deploy_mainnet() -> dict:
             "instructions": (
                 "Deployer is funded and ready. This script will not deploy to MainNet without "
                 "an explicit, separate confirmation: rerun with MAINNET_DEPLOY_CONFIRM=yes set. "
-                "This is real money and an unaudited contract -- see CLAUDE.md and "
-                "docs/DECISIONS.md before setting that flag."
+                "This is real money and an unaudited contract -- see the README's MainNet section "
+                "before setting that flag."
             ),
         }, indent=2))
         return {"status": "needs_confirmation"}
