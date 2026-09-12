@@ -172,7 +172,7 @@ project instead of running the whole demo stack:
 
 ## Quickstart (LocalNet)
 
-Requires [Docker](https://www.docker.com/) (for LocalNet), [AlgoKit](https://dev.algorand.co/algokit/get-started/),
+Requires [Docker](https://www.docker.com/) (for LocalNet), [AlgoKit](https://github.com/algorandfoundation/algokit-cli),
 Python 3.12, and Node 22+.
 
 ```bash
@@ -239,9 +239,11 @@ The script generates (or reuses) a deployer account, prints a funding address an
 exits with `needs_funding` until the [TestNet dispenser](https://bank.testnet.algorand.network/) has
 funded it — it never logs or prints a mnemonic. Once funded, it deploys the escrow app and a mock
 6-decimal ASA, and every app above accepts `NETWORK=testnet` to point at TestNet instead of LocalNet.
-Verified live: app `771555042`, asset `771555032` on genesis `SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe` (see
-[`docs/PROGRESS.md`](docs/PROGRESS.md) for the recorded run — real deposit, 3 real paid calls, real
-claim + settle).
+Verified live: app [`771555042`](https://lora.algokit.io/testnet/application/771555042), asset
+`771555032` on genesis `SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe` — real deposit, 3 real paid calls, real
+claim (settled exactly 3,600 atomic units to the receiver). Every transaction id is in
+[Live deployments & transaction log](#live-deployments--transaction-log) below, independently
+re-verified against the public TestNet indexer, not just recorded in [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
 ## MainNet
 
@@ -271,11 +273,25 @@ below for every transaction id, and [`docs/PROGRESS.md`](docs/PROGRESS.md) /
 
 ## Live deployments & transaction log
 
-Every transaction ID below was fetched directly from a public indexer at write time
-([`mainnet-idx.algonode.cloud`](https://mainnet-idx.algonode.cloud) /
-[`testnet-idx.algonode.cloud`](https://testnet-idx.algonode.cloud)), not copied from a script's own
-stdout — an independent check that these transactions really are on-chain, not just "the deploy
-script exited 0."
+Every transaction ID below was fetched directly from a public indexer, independently of and after
+the deploy/demo scripts ran — not copied from a script's own stdout — and every link was checked to
+actually resolve (HTTP 200) before being included here. **Last independently verified: 2026-09-12**,
+against `mainnet-idx.algonode.cloud` / `testnet-idx.algonode.cloud` and cross-checked against
+`mainnet-api.algonode.cloud` / `testnet-api.algonode.cloud` for account balances.
+
+You can reproduce every check below yourself, no local setup required:
+
+```bash
+# Any transaction id in this table:
+curl -s "https://mainnet-idx.algonode.cloud/v2/transactions/<TXID>"        # or testnet-idx.
+# Any account's current balance / asset holdings:
+curl -s "https://mainnet-api.algonode.cloud/v2/accounts/<ADDRESS>"         # or testnet-api.
+# The deployed app's on-chain program (confirms it's this contract, not a different one):
+curl -s "https://mainnet-api.algonode.cloud/v2/applications/<APP_ID>"
+```
+
+Algonode is a public, free Algorand API/indexer service — no API key needed, and it's independent of
+this repository and its author.
 
 ### TestNet — app [`771555042`](https://lora.algokit.io/testnet/application/771555042)
 
@@ -428,7 +444,7 @@ consistently lower for batch at every N — a local signature check beats waitin
   [Algorand Python (Puya)](https://dev.algorand.co/algokit/languages/python/overview/) ·
   [Boxes & MBR](https://dev.algorand.co/concepts/smart-contracts/storage/box/) ·
   [Inner transactions & fee pooling](https://dev.algorand.co/concepts/smart-contracts/inner-txn/) ·
-  [AlgoKit LocalNet](https://dev.algorand.co/algokit/cli/localnet/)
+  [AlgoKit LocalNet](https://github.com/algorandfoundation/algokit-cli)
 - **Upstream x402 vendor commit:** [`3c2ddfb9`](https://github.com/x402-foundation/x402/commit/3c2ddfb922893c91ef8f281b64f8045d1f5e0d75)
   (pinned in [`docs/reference/UPSTREAM_COMMIT.txt`](docs/reference/UPSTREAM_COMMIT.txt))
 
@@ -442,7 +458,7 @@ consistently lower for batch at every N — a local signature check beats waitin
 | Crypto | [`@noble/ed25519`](https://www.npmjs.com/package/@noble/ed25519), [`@noble/hashes`](https://www.npmjs.com/package/@noble/hashes) |
 | Storage | `ChannelStorage` interface — in-memory or `node:sqlite` (built into Node 22.5+, no native build step) |
 | Tests | [vitest](https://vitest.dev) (TypeScript), [pytest](https://pytest.org) (contract, offline + LocalNet) |
-| Tooling | pnpm workspaces, TypeScript strict, Node 22+, Python 3.12, [AlgoKit](https://dev.algorand.co/algokit/) + Docker for LocalNet |
+| Tooling | pnpm workspaces, TypeScript strict, Node 22+, Python 3.12, [AlgoKit](https://github.com/algorandfoundation/algokit-cli) + Docker for LocalNet |
 
 ## Contributing
 
