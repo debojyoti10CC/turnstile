@@ -43,6 +43,7 @@ It ships as:
 - [Repository layout](#repository-layout)
 - [SDK packages](#sdk-packages)
 - [Quickstart (LocalNet)](#quickstart-localnet)
+- [Dashboard](#dashboard)
 - [Running the standalone settler](#running-the-standalone-settler)
 - [TestNet](#testnet)
 - [MainNet](#mainnet)
@@ -202,7 +203,23 @@ PAYER_ADDRESS=<payer> PAYER_PRIVATE_KEY=<payer_private_key> X402_AVM_APP_ID=<app
 short-lived demo). Set it to persist state across restarts and to let the standalone settler
 ([below](#running-the-standalone-settler)) see the same channels from a separate process.
 
-Watch it live: `pnpm -F @turnstile/dashboard dev` (reads the merchant's `/debug/*` endpoints).
+Watch it live: `pnpm -F @turnstile/dashboard dev` (reads the merchant's `/debug/*` endpoints) — see
+[Dashboard](#dashboard) below for what it looks like.
+
+## Dashboard
+
+A read-only [React/Vite app](apps/dashboard) polling the merchant's `/debug/*` endpoints — every
+number on it is either live server state or a file one of this repo's own CLIs already wrote,
+nothing synthesized for display. Screenshots below are from a real LocalNet run: a live channel
+opened by `apps/demo-agent`, the real `pnpm bench` output, and the real `pnpm adversary` report.
+
+<p align="center">
+  <img src="docs/assets/dashboard-channels.jpg" width="100%" alt="Turnstile dashboard: a live channel table showing deposit, charged, signed max, claimed, and exposure, plus the real benchmark table and fee/latency bar charts">
+</p>
+
+<p align="center">
+  <img src="docs/assets/dashboard-adversary.jpg" width="100%" alt="Turnstile dashboard: the adversary suite panel showing 24/24 attacks correctly rejected, each with attack name, layer, expected vs actual result, and pass/fail">
+</p>
 
 ## Running the standalone settler
 
