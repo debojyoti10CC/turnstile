@@ -1,13 +1,17 @@
 <!-- markdownlint-disable MD033 -->
-# Turnstile
+<p align="center">
+<img width="320" height="320" alt="NEX (34)" src="https://github.com/user-attachments/assets/bd39f5ac-0827-49b9-befb-cb7f5260df17" />
 
-**x402 `batch-settlement` for the Algorand Virtual Machine (AVM).**
 
-[![Repo](https://img.shields.io/badge/github-debojyoti10CC%2Fturnstile-181717?logo=github)](https://github.com/debojyoti10CC/turnstile)
-[![x402](https://img.shields.io/badge/protocol-x402-6b46c1)](https://github.com/x402-foundation/x402)
-[![Algorand](https://img.shields.io/badge/chain-Algorand-000000?logo=algorand)](https://algorand.co)
-[![puyapy](https://img.shields.io/badge/contract-puyapy-1f6feb)](https://dev.algorand.co/algokit/languages/python/overview/)
+</p>
 
+<h1 align="center">TurnStile</h1>
+<p align="center">
+  <a href="https://github.com/debojyoti10CC/turnstile"><img src="https://img.shields.io/badge/github-debojyoti10CC%2Fturnstile-1A2236?style=flat-square&logo=github" alt="GitHub" /></a>
+  <a href="https://github.com/x402-foundation/x402"><img src="https://img.shields.io/badge/protocol-x402-22D68B?style=flat-square" alt="x402" /></a>
+  <a href="https://algorand.co"><img src="https://img.shields.io/badge/chain-Algorand-1A2236?style=flat-square&logo=algorand" alt="Algorand" /></a>
+  <a href="https://dev.algorand.co/algokit/languages/python/overview/"><img src="https://img.shields.io/badge/contract-puyapy-22D68B?style=flat-square" alt="puyapy" /></a>
+</p>
 Turnstile is a complete, tested, real-transaction implementation of x402's `batch-settlement`
 payment scheme for Algorand: an AI agent (or any HTTP client) deposits an ASA into an on-chain escrow
 **once**, then pays for every subsequent API call with a cumulative ed25519 voucher that a merchant
