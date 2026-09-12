@@ -44,6 +44,8 @@ It ships as:
 - [Quickstart (LocalNet)](#quickstart-localnet)
 - [Running the standalone settler](#running-the-standalone-settler)
 - [TestNet](#testnet)
+- [MainNet](#mainnet)
+- [Live deployments & transaction log](#live-deployments--transaction-log)
 - [Testing & verification](#testing--verification)
 - [Benchmarks](#benchmarks)
 - [Security model](#security-model)
@@ -240,6 +242,78 @@ funded it — it never logs or prints a mnemonic. Once funded, it deploys the es
 Verified live: app `771555042`, asset `771555032` on genesis `SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe` (see
 [`docs/PROGRESS.md`](docs/PROGRESS.md) for the recorded run — real deposit, 3 real paid calls, real
 claim + settle).
+
+## MainNet
+
+> **This contract has no external security audit.** It has passed 25 offline tests, 6+ real-LocalNet
+> invariant tests, and a 24/24 real-transaction adversary suite — see [Testing & verification](#testing--verification)
+> — but that is not a substitute for independent review. MainNet deployment happened with the
+> repository owner's explicit, informed sign-off, recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md)
+> per [`CLAUDE.md`](CLAUDE.md) §4 P7's escape hatch. Treat any MainNet use of this contract as
+> unaudited software holding real funds.
+
+```bash
+MAINNET_DEPLOY_CONFIRM=yes pnpm deploy:mainnet   # contracts/scripts/deploy_mainnet.py
+```
+
+Same safe pattern as TestNet — a fresh generated deployer key that never touches an existing wallet's
+mnemonic, prints only a funding address, and is idempotent to rerun — plus two changes for a
+real-money target: it opts into real Circle USDC (MainNet ASA `31566704`) instead of a mock asset,
+and it refuses to deploy without the explicit `MAINNET_DEPLOY_CONFIRM=yes` flag even once the
+deployer is funded, as a second, deliberate gate.
+
+**Live:** app `3703998610`, app account
+[`53VIOBJWKTCMEWC5SFN4AI5PF2PEICJWUTPKAFHIL44DMZXF43C4UY5CL4`](https://allo.info/account/53VIOBJWKTCMEWC5SFN4AI5PF2PEICJWUTPKAFHIL44DMZXF43C4UY5CL4),
+opted into USDC (`31566704`), verified independently against the public MainNet API — see
+[`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/DECISIONS.md`](docs/DECISIONS.md) for the full
+record. No channel has been opened and no USDC has moved; that needs a real payer, receiver, and USDC
+deposit, which is a separate, deliberate step this deploy did not take.
+
+## Live deployments & transaction log
+
+Every transaction ID below was fetched directly from a public indexer at write time
+([`mainnet-idx.algonode.cloud`](https://mainnet-idx.algonode.cloud) /
+[`testnet-idx.algonode.cloud`](https://testnet-idx.algonode.cloud)), not copied from a script's own
+stdout — an independent check that these transactions really are on-chain, not just "the deploy
+script exited 0."
+
+### TestNet — app [`771555042`](https://lora.algokit.io/testnet/application/771555042)
+
+Full end-to-end flow: deploy → deposit → 3 real paid `/v1/infer` calls (off-chain vouchers, no
+per-call transaction) → claim → settle. Genesis `SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe`.
+
+| Step | Method | Transaction |
+|---|---|---|
+| App creation | — | [`OA3EUR3YW76LIFY4REO2ZARAWNLMQXSFN7SQCGZHFBTCC5GPZLIA`](https://lora.algokit.io/testnet/transaction/OA3EUR3YW76LIFY4REO2ZARAWNLMQXSFN7SQCGZHFBTCC5GPZLIA) |
+| USDC opt-in | `opt_in_asset` | [`IIF5EY3A3ELJ3EMIIN7QNLGNLF7DKN6F2HQ27OREBWIIX2SJIMHA`](https://lora.algokit.io/testnet/transaction/IIF5EY3A3ELJ3EMIIN7QNLGNLF7DKN6F2HQ27OREBWIIX2SJIMHA) |
+| Channel deposit | `deposit` | [`XVCJWXKANCFY3YSS4UTJ347AHQRX7PMZR4SNJW23DW6OLPUBAPHA`](https://lora.algokit.io/testnet/transaction/XVCJWXKANCFY3YSS4UTJ347AHQRX7PMZR4SNJW23DW6OLPUBAPHA) |
+| Batch claim | `claim` | [`Z2CURICJ3IQN7NIXBSXOUOG25KMWHH5ZCK56E6KZYZ5NYMD2TJ7A`](https://lora.algokit.io/testnet/transaction/Z2CURICJ3IQN7NIXBSXOUOG25KMWHH5ZCK56E6KZYZ5NYMD2TJ7A) |
+| Settle | `settle` | [`PKWTE6Z4NIVTKCBXVZ2U5TM2LFFYLFQXTA6QGSPAVXHLZ3A4E4TQ`](https://lora.algokit.io/testnet/transaction/PKWTE6Z4NIVTKCBXVZ2U5TM2LFFYLFQXTA6QGSPAVXHLZ3A4E4TQ) |
+
+The 3 paid `/v1/infer` requests between `deposit` and `claim` are deliberately **not** on-chain
+transactions — that's the entire point of batch-settlement. `docs/PROGRESS.md` has the off-chain
+numbers (agent-local `chargedCumulativeAmount` vs. the merchant's own ledger vs. on-chain state, all
+matching exactly).
+
+### MainNet — app [`3703998610`](https://lora.algokit.io/mainnet/application/3703998610)
+
+Contract deployment and demo-account setup, funded by the repository owner's own wallet. No channel
+has been opened yet — that step needs real Algorand-native USDC (a different token instance from
+Ethereum USDC, even though both are Circle-issued), which is pending as of this log.
+
+| Step | Transaction |
+|---|---|
+| Deployer funded (0.9 ALGO) | [`N4NUWHTQC7QOSR256445RQ5OSGD736EY2LWTEJ56CQ3PHYKZ3OYQ`](https://lora.algokit.io/mainnet/transaction/N4NUWHTQC7QOSR256445RQ5OSGD736EY2LWTEJ56CQ3PHYKZ3OYQ) |
+| App creation | [`4B2GU7PX7PLGV7HSNGBGU26BLRQOCWCZL4IFDLNUTJOUQGEGRC7A`](https://lora.algokit.io/mainnet/transaction/4B2GU7PX7PLGV7HSNGBGU26BLRQOCWCZL4IFDLNUTJOUQGEGRC7A) — created app `3703998610` |
+| App MBR funding | [`RPFRIBEE3GSX6YDPGJ4PSHKHNU5DLQQXWVJEFZFWYFAQKJ37E5CQ`](https://lora.algokit.io/mainnet/transaction/RPFRIBEE3GSX6YDPGJ4PSHKHNU5DLQQXWVJEFZFWYFAQKJ37E5CQ) |
+| USDC opt-in (`opt_in_asset` + MBR pay, grouped) | [`SHWIKXYFZVMAN7YPWCKHBSI6Z6J4E2UB5PX3JMJSNLYIF5XGH7EA`](https://lora.algokit.io/mainnet/transaction/SHWIKXYFZVMAN7YPWCKHBSI6Z6J4E2UB5PX3JMJSNLYIF5XGH7EA), [`XPC5NFNVNLRK6R5QYQL5MTPEPWBIUZHXLWYUDHJL7GLLNWUNDCXA`](https://lora.algokit.io/mainnet/transaction/XPC5NFNVNLRK6R5QYQL5MTPEPWBIUZHXLWYUDHJL7GLLNWUNDCXA) |
+| Deployer topped up (0.5 ALGO) | [`37NTCHS3QOO55XQXPYRJKQO6T7IRI3X444DH54TBA7PFQ4AHLDZQ`](https://lora.algokit.io/mainnet/transaction/37NTCHS3QOO55XQXPYRJKQO6T7IRI3X444DH54TBA7PFQ4AHLDZQ) |
+| Demo payer funded + USDC opt-in | [`SSLVA7R2I7CAHRDOFD2TMNOYOBNRRNJNMHKQKVU4ONHITAQISKVQ`](https://lora.algokit.io/mainnet/transaction/SSLVA7R2I7CAHRDOFD2TMNOYOBNRRNJNMHKQKVU4ONHITAQISKVQ), [`QT4OUHQ3POXA3WNDJU5E6PWBMQKZZQKPYQSC72LMP3Y7MHVYKG6Q`](https://lora.algokit.io/mainnet/transaction/QT4OUHQ3POXA3WNDJU5E6PWBMQKZZQKPYQSC72LMP3Y7MHVYKG6Q) — payer [`BJL3KICSXZ2GAEABXEIYN2SRVJ6K7WJUHSNYP2QJTEJPTT5IFNSQZULB5I`](https://allo.info/account/BJL3KICSXZ2GAEABXEIYN2SRVJ6K7WJUHSNYP2QJTEJPTT5IFNSQZULB5I) |
+| Demo receiver funded + USDC opt-in | [`EGHJX6ARY5HNB2DQUM3FUDQBVJX3646MXTP3EYQ7HHOZW3HA74OA`](https://lora.algokit.io/mainnet/transaction/EGHJX6ARY5HNB2DQUM3FUDQBVJX3646MXTP3EYQ7HHOZW3HA74OA), [`CPM72KAEEOSXVQ4PFMA3FYSV6UVMQIYPW5FCGXU2RQKKMVDKQSTQ`](https://lora.algokit.io/mainnet/transaction/CPM72KAEEOSXVQ4PFMA3FYSV6UVMQIYPW5FCGXU2RQKKMVDKQSTQ) — receiver [`IZDWCXAOF755MKS4T6GUWBSZUI6WRAHFF5R2FOP452O5ORYRBCKWLJ2TLU`](https://allo.info/account/IZDWCXAOF755MKS4T6GUWBSZUI6WRAHFF5R2FOP452O5ORYRBCKWLJ2TLU) |
+
+`deposit` / `claim` / `settle` rows will be added here once the demo payer holds real Algorand USDC
+and a channel is actually opened — this table is updated as real transactions land, never
+pre-populated with expected ones.
 
 ## Testing & verification
 

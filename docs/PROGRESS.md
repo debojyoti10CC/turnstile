@@ -493,3 +493,53 @@
   benchmark comparison, pending-request TTL reservation system, MainNet)
   are documented limitations, not silent gaps.
   **Risks:** none outstanding.
+
+- **2026-09-12 — Deployed to Algorand MainNet.** App `3703998610`
+  (`53VIOBJWKTCMEWC5SFN4AI5PF2PEICJWUTPKAFHIL44DMZXF43C4UY5CL4`), opted into
+  real Circle USDC (asset `31566704`), funded and deployed by the repo
+  owner's own wallet (0.9 ALGO in, ~0.305 ALGO actual cost). Per CLAUDE.md
+  §4 P7's escape hatch ("only if docs/DECISIONS.md records team approval"),
+  the owner gave that approval explicitly after being told plainly this
+  contract has no external security audit — see docs/DECISIONS.md for the
+  full record. Verified independently against the public MainNet API
+  (algonode.cloud), not just the deploy script's own output: app bytecode
+  contains the correct domain-separation prefixes, app account shows
+  `asset-id 31566704, amount 0` (opted in, not yet funded).
+  New `contracts/scripts/deploy_mainnet.py`, mirroring `deploy_testnet.py`'s
+  safe pattern (fresh generated deployer key, never touches an existing
+  wallet's mnemonic, prints only an address to fund) but scoped down for a
+  real-money target: no mock asset, no test payer/receiver accounts, and an
+  extra explicit `MAINNET_DEPLOY_CONFIRM=yes` gate beyond just funding.
+  **What's next:** opening a real channel needs actual MainNet USDC (a
+  separate asset from ALGO) that nobody in this session holds yet —
+  deliberately not attempted.
+  **Risks:** the contract is live on MainNet without external audit, by the
+  owner's explicit, informed choice. No funds are at risk yet beyond the
+  ~0.305 ALGO deploy cost — no USDC has moved and no channel is open.
+
+- **2026-09-12 — MainNet demo accounts set up; README transaction log added.**
+  New `contracts/scripts/mainnet_demo_setup.py` generated and funded a payer
+  (`BJL3KICSXZ2GAEABXEIYN2SRVJ6K7WJUHSNYP2QJTEJPTT5IFNSQZULB5I`) and receiver
+  (`IZDWCXAOF755MKS4T6GUWBSZUI6WRAHFF5R2FOP452O5ORYRBCKWLJ2TLU`) from the
+  deployer's own leftover ALGO, opted both into real Circle USDC (asset
+  `31566704`). Found and worked around a real gap in the mainnet deploy's
+  balance estimate: creating an app raises the creator's own minimum
+  balance to 0.2 ALGO (not the 0.1 ALGO floor assumed), which left too
+  little spendable to fund both demo accounts in one pass — owner sent an
+  additional 0.5 ALGO to cover it. Owner then clarified their available
+  USDC is on Ethereum, a different token instance from Algorand's Circle
+  USDC despite the shared name — moving value across chains needs a bridge
+  or exchange, which is a financial transfer this agent cannot execute on
+  the owner's behalf; the payer is funded and opted in but holds 0 USDC as
+  of this entry, so no channel has been opened.
+  Added a "Live deployments & transaction log" section to the README with
+  real transaction ids for both TestNet (deploy → deposit → claim → settle,
+  5 real app calls) and MainNet (deploy + demo-account setup so far),
+  every id independently fetched from a public indexer and link-checked
+  (HTTP 200) rather than copied from a script's own printed output.
+  **What's next:** owner needs to bridge/exchange some USDC onto Algorand
+  and send it to the payer address above; once that lands, run a real
+  deposit → a few paid calls → claim → settle sequence and append those
+  transaction ids to the README's MainNet table.
+  **Risks:** none new. The MainNet contract remains unaudited, live, and
+  currently holds no escrowed value.

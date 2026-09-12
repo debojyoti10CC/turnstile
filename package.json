@@ -12,6 +12,7 @@
     "adversary": "pnpm -F @turnstile/adversary start",
     "bench": "pnpm -F @turnstile/demo-agent bench",
     "dev": "pnpm -r --parallel --filter ./apps/** dev",
-    "deploy:testnet": "cd contracts && python scripts/deploy_testnet.py"
+    "deploy:testnet": "cd contracts && python scripts/deploy_testnet.py",
+    "deploy:mainnet": "cd contracts && python scripts/deploy_mainnet.py"
   }
 }
