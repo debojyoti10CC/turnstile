@@ -40,6 +40,7 @@ It ships as:
 - [Why this exists](#why-this-exists)
 - [Architecture](#architecture)
 - [Repository layout](#repository-layout)
+- [SDK packages](#sdk-packages)
 - [Quickstart (LocalNet)](#quickstart-localnet)
 - [Running the standalone settler](#running-the-standalone-settler)
 - [TestNet](#testnet)
@@ -154,6 +155,18 @@ turnstile/
    ├─ DECISIONS.md                           every non-obvious engineering decision and why
    ├─ spec-notes.md, RESOURCES.md, DEMO.md
 ```
+
+## SDK packages
+
+Each package is independently documented, versioned, and installable — use one directly in your own
+project instead of running the whole demo stack:
+
+| Package | Install | What it's for |
+|---|---|---|
+| [`@turnstile/core`](packages/core) | `npm i @turnstile/core` | Voucher/channel-id encoding, ed25519 signing, wire types — the shared vocabulary every other package builds on |
+| [`@turnstile/escrow-client`](packages/escrow-client) | `npm i @turnstile/escrow-client` | Typed transaction builders for the escrow contract (deposit, claim, settle, refund, withdraw) |
+| [`@turnstile/x402-avm-batch`](packages/x402-avm-batch) | `npm i @turnstile/x402-avm-batch` | The `@x402/core` plugin itself — client/server/facilitator schemes, drop-in with `@x402/express` and `@x402/fetch` |
+| [`@turnstile/settler`](packages/settler) | `npm i @turnstile/settler` | Claim/settle policy engine; embed it in your own process, or run [`apps/settler`](apps/settler) as a ready-made standalone service |
 
 ## Quickstart (LocalNet)
 
