@@ -1,5 +1,5 @@
-import { encodeAddress, newSessionKey, signVoucher, type ChannelConfig } from '@turnstile/core';
-import { claimBatch, deposit, getChannel, getUnsettled, refund, settle } from '@turnstile/escrow-client';
+import { encodeAddress, newSessionKey, signVoucher, type ChannelConfig } from '@turnstilealgo/core';
+import { claimBatch, deposit, getChannel, getUnsettled, refund, settle } from '@turnstilealgo/escrow-client';
 import type { AttackResult } from './report.js';
 import { bootstrap } from './world.js';
 

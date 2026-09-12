@@ -7,7 +7,7 @@ import {
   toB64,
   fromB64,
   type Deployment,
-} from '@turnstile/core';
+} from '@turnstilealgo/core';
 import {
   claimBatch,
   deposit,
@@ -16,7 +16,7 @@ import {
   initiateWithdraw,
   refund,
   channelBoxName,
-} from '@turnstile/escrow-client';
+} from '@turnstilealgo/escrow-client';
 import { expectFalsy, expectRejected, type AttackResult } from './report.js';
 import { bootstrap, freshConfig, maliciousDeposit, newChannel, sign, type World } from './world.js';
 

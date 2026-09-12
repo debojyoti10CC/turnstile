@@ -12,7 +12,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { Network, PaymentRequirements } from '@x402/core/types';
-import type { AvmBatchExtra, AvmBatchPayload, Deployment } from '@turnstile/core';
+import type { AvmBatchExtra, AvmBatchPayload, Deployment } from '@turnstilealgo/core';
 import { BatchSettlementAvmScheme } from '../src/server/scheme.js';
 import type { OnchainMirror } from '../src/server/channelManager.js';
 import type { BuildDepositGroup } from '../src/client/scheme.js';
@@ -138,7 +138,7 @@ function makeScheme() {
     payerAddress,
     deployment,
     buildDepositGroup: async (args) => {
-      const cid = (await import('@turnstile/core')).channelId(args.config, deployment);
+      const cid = (await import('@turnstilealgo/core')).channelId(args.config, deployment);
       chain.creditDeposit(cid, args.amount);
       return chain.buildDepositGroup(args);
     },

@@ -1,8 +1,8 @@
 import type { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import type { AppClient } from '@algorandfoundation/algokit-utils/types/app-client';
-import { claimBatch, settle as escrowSettle, getChannel, getUnsettled, type ClaimRow } from '@turnstile/escrow-client';
-import type { Channel, ChannelStorage } from '@turnstile/x402-avm-batch';
-import { fromB64 } from '@turnstile/core';
+import { claimBatch, settle as escrowSettle, getChannel, getUnsettled, type ClaimRow } from '@turnstilealgo/escrow-client';
+import type { Channel, ChannelStorage } from '@turnstilealgo/x402-avm-batch';
+import { fromB64 } from '@turnstilealgo/core';
 import { assertPollIntervalSafe, chunk, isClaimEligible, shouldSettle, type ClaimPolicyConfig } from './policies.js';
 
 export interface ClaimResult {
@@ -33,7 +33,7 @@ export interface SettlerConfig {
    * Rows per claim() call. Defaults to 4 (MAX_APP_CALL_FOREIGN_REFERENCES=8
    * worst case: channel box + unsettled box per row, different receivers).
    * Safe to raise toward 7 if the settler's channels are known to share one
-   * receiver (see @turnstile/escrow-client's fees.ts for the exact math).
+   * receiver (see @turnstilealgo/escrow-client's fees.ts for the exact math).
    */
   maxRowsPerClaimBatch?: number;
   onClaim?: (result: ClaimResult) => void;

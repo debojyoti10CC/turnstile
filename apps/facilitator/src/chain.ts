@@ -1,9 +1,9 @@
 import { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import type { AppClient } from '@algorandfoundation/algokit-utils/types/app-client';
-import { getAppClient, getChannel as escrowGetChannel } from '@turnstile/escrow-client';
-import { caip2FromGenesisHash, type Deployment } from '@turnstile/core';
-import { BatchSettlementChannelManager, type OnchainMirror } from '@turnstile/x402-avm-batch';
-import { InMemoryChannelStorage } from '@turnstile/x402-avm-batch';
+import { getAppClient, getChannel as escrowGetChannel } from '@turnstilealgo/escrow-client';
+import { caip2FromGenesisHash, type Deployment } from '@turnstilealgo/core';
+import { BatchSettlementChannelManager, type OnchainMirror } from '@turnstilealgo/x402-avm-batch';
+import { InMemoryChannelStorage } from '@turnstilealgo/x402-avm-batch';
 
 export interface FacilitatorChainConfig {
   appId: bigint;

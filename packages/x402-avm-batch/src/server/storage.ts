@@ -1,4 +1,4 @@
-import type { ChannelConfigWire } from '@turnstile/core';
+import type { ChannelConfigWire } from '@turnstilealgo/core';
 
 export interface Channel {
   channelId: string; // base64, 32 bytes

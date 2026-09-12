@@ -5,7 +5,7 @@ import type {
   SchemeNetworkFacilitator,
 } from '@x402/core/types';
 import type { VerifyResponse, SettleResponse } from '@x402/core/types';
-import { fromB64, isDepositPayload, isRefundPayload, isVoucherPayload, type AvmBatchPayload } from '@turnstile/core';
+import { fromB64, isDepositPayload, isRefundPayload, isVoucherPayload, type AvmBatchPayload } from '@turnstilealgo/core';
 import { BATCH_SETTLEMENT_SCHEME } from '../constants.js';
 import { BatchSettlementChannelManager } from '../server/channelManager.js';
 
@@ -24,7 +24,7 @@ export interface BatchSettlementAvmFacilitatorConfig {
  * Facilitator-side `batch-settlement` scheme for AVM networks. Scoped for
  * this pass (see docs/DECISIONS.md): the deposit transaction is submitted
  * directly by the client/agent using its own keys via
- * `@turnstile/escrow-client` before the payload is even sent, rather than
+ * `@turnstilealgo/escrow-client` before the payload is even sent, rather than
  * by the facilitator on the client's behalf. That means `verify()` for a
  * deposit payload only needs to confirm the deposit already landed
  * on-chain (the channel manager's cold-start mirror read does exactly

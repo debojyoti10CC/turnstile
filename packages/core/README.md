@@ -1,4 +1,4 @@
-# @turnstile/core
+# @turnstilealgo/core
 
 **The shared vocabulary of Turnstile's Algorand batch-settlement scheme.** Pure, dependency-light
 primitives with no chain I/O and no HTTP: address codec, ed25519 voucher signing/verification,
@@ -6,7 +6,7 @@ channel-id and voucher-message encoding (byte-for-byte identical to the on-chain
 encoding), the wire types every other package passes over HTTP, and CAIP-2 network-id helpers.
 
 ```bash
-npm install @turnstile/core
+npm install @turnstilealgo/core
 ```
 
 Safe to import from a browser, a CLI, a server, or a test file — nothing in this package touches a
@@ -14,7 +14,7 @@ network, a filesystem, or the clock.
 
 ## Why it's separate
 
-The client, server, and facilitator schemes in [`@turnstile/x402-avm-batch`](../x402-avm-batch) all
+The client, server, and facilitator schemes in [`@turnstilealgo/x402-avm-batch`](../x402-avm-batch) all
 need to construct the exact same channel-id and voucher-message bytes the on-chain contract
 verifies with `ed25519verify_bare`. Getting that encoding wrong in even one byte means signatures
 silently fail to verify on-chain while looking fine in TypeScript. Centralizing it here — with
@@ -24,7 +24,7 @@ makes "TS↔contract signature parity" a real, continuously-verified property in
 ## Quickstart
 
 ```ts
-import { newSessionKey, signVoucher, channelId, encodeAddress, toB64, type ChannelConfig, type Deployment } from '@turnstile/core';
+import { newSessionKey, signVoucher, channelId, encodeAddress, toB64, type ChannelConfig, type Deployment } from '@turnstilealgo/core';
 
 // A session key is the "hot" key that signs a voucher on every request --
 // see the security model in the top-level README for why it's never the
@@ -69,7 +69,7 @@ Full byte layout and field-by-field rationale: [`docs/spec/scheme_batch_settleme
 ## Testing
 
 ```bash
-pnpm -F @turnstile/core test
+pnpm -F @turnstilealgo/core test
 ```
 
 11 tests, including round-trip encode/decode, cross-checking `channelId`/`voucherMessage` output

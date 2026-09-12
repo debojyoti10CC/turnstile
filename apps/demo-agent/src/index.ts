@@ -3,9 +3,9 @@ import algosdk from 'algosdk';
 import { x402Client } from '@x402/core/client';
 import { wrapFetchWithPayment } from '@x402/fetch';
 import type { Network } from '@x402/core/types';
-import { caip2FromGenesisHash, type ChannelConfig, type Deployment } from '@turnstile/core';
-import { deposit, getAppClient, getChannel } from '@turnstile/escrow-client';
-import { BatchSettlementAvmClientScheme, type BuildDepositGroup } from '@turnstile/x402-avm-batch';
+import { caip2FromGenesisHash, type ChannelConfig, type Deployment } from '@turnstilealgo/core';
+import { deposit, getAppClient, getChannel } from '@turnstilealgo/escrow-client';
+import { BatchSettlementAvmClientScheme, type BuildDepositGroup } from '@turnstilealgo/x402-avm-batch';
 
 const MERCHANT_URL = process.env.MERCHANT_URL ?? 'http://localhost:4403';
 const APP_ID = BigInt(process.env.X402_AVM_APP_ID ?? '0');

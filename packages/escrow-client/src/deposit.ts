@@ -1,7 +1,7 @@
 import type { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import type { AppClient } from '@algorandfoundation/algokit-utils/types/app-client';
 import { microAlgos } from '@algorandfoundation/algokit-utils';
-import { channelId, type ChannelConfig, type Deployment } from '@turnstile/core';
+import { channelId, type ChannelConfig, type Deployment } from '@turnstilealgo/core';
 import { configToTuple } from './client.js';
 import { channelBoxName, unsettledBoxName } from './boxes.js';
 

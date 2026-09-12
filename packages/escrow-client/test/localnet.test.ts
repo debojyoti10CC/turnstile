@@ -21,7 +21,7 @@ import {
   signVoucher,
   type ChannelConfig,
   type Deployment,
-} from '@turnstile/core';
+} from '@turnstilealgo/core';
 import {
   claimBatch,
   deposit,

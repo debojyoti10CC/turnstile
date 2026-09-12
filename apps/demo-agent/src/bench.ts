@@ -21,9 +21,9 @@ import algosdk from 'algosdk';
 import { x402Client } from '@x402/core/client';
 import { wrapFetchWithPayment } from '@x402/fetch';
 import type { Network } from '@x402/core/types';
-import { caip2FromGenesisHash, channelId as computeChannelId, type ChannelConfig, type Deployment } from '@turnstile/core';
-import { channelBoxName, configToTuple, deposit, getAppClient, unsettledBoxName } from '@turnstile/escrow-client';
-import { BatchSettlementAvmClientScheme, type BuildDepositGroup } from '@turnstile/x402-avm-batch';
+import { caip2FromGenesisHash, channelId as computeChannelId, type ChannelConfig, type Deployment } from '@turnstilealgo/core';
+import { channelBoxName, configToTuple, deposit, getAppClient, unsettledBoxName } from '@turnstilealgo/escrow-client';
+import { BatchSettlementAvmClientScheme, type BuildDepositGroup } from '@turnstilealgo/x402-avm-batch';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../../');

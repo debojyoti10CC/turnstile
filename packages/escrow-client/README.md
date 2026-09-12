@@ -1,4 +1,4 @@
-# @turnstile/escrow-client
+# @turnstilealgo/escrow-client
 
 **Typed transaction builders for the `X402BatchSettlement` ARC-56 contract.** One function per
 on-chain operation — deposit, claim, settle, refund, initiate/finalize withdraw, and channel
@@ -6,7 +6,7 @@ reads — on top of [`@algorandfoundation/algokit-utils`](https://www.npmjs.com/
 (9.2.x, stable) and [`algosdk`](https://www.npmjs.com/package/algosdk) v3.
 
 ```bash
-npm install @turnstile/escrow-client @algorandfoundation/algokit-utils algosdk
+npm install @turnstilealgo/escrow-client @algorandfoundation/algokit-utils algosdk
 ```
 
 Every builder passes explicit box/account/asset references rather than relying on algokit-utils'
@@ -20,7 +20,7 @@ blindly at submit time.
 
 ```ts
 import { AlgorandClient } from '@algorandfoundation/algokit-utils';
-import { getAppClient, deposit, claimBatch, settle, getChannel } from '@turnstile/escrow-client';
+import { getAppClient, deposit, claimBatch, settle, getChannel } from '@turnstilealgo/escrow-client';
 
 const algorand = AlgorandClient.defaultLocalNet(); // or .testNet() / .mainNet()
 const appClient = getAppClient(algorand, appId);
@@ -78,7 +78,7 @@ rows; a batch spanning different receivers is capped at 4.
 ## Testing
 
 ```bash
-pnpm -F @turnstile/escrow-client test
+pnpm -F @turnstilealgo/escrow-client test
 ```
 
 Not an emulator test — `test/localnet.test.ts` runs the full deposit → claim → settle → refund →

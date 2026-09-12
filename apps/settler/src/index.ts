@@ -1,8 +1,8 @@
 import { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import algosdk from 'algosdk';
-import { getAppClient } from '@turnstile/escrow-client';
-import { SqliteChannelStorage } from '@turnstile/x402-avm-batch';
-import { Settler } from '@turnstile/settler';
+import { getAppClient } from '@turnstilealgo/escrow-client';
+import { SqliteChannelStorage } from '@turnstilealgo/x402-avm-batch';
+import { Settler } from '@turnstilealgo/settler';
 
 const APP_ID = BigInt(process.env.X402_AVM_APP_ID ?? '0');
 const CHANNEL_DB_PATH = process.env.CHANNEL_DB_PATH ?? '';
@@ -24,7 +24,7 @@ const MAX_ROWS_PER_CLAIM_BATCH = process.env.MAX_ROWS_PER_CLAIM_BATCH ? Number(p
  * merchant process writes to (`CHANNEL_DB_PATH`, backed by
  * `SqliteChannelStorage` -- SQLite's own file locking makes it safe for the
  * merchant and this process to share one file, one writer at a time), then
- * runs `@turnstile/settler`'s claim/settle policies from `packages/settler`
+ * runs `@turnstilealgo/settler`'s claim/settle policies from `packages/settler`
  * on a timer against real on-chain state. `packages/settler` itself is
  * chain-agnostic and already fully tested (including I8 on real LocalNet);
  * this file is only wiring: env config in, `Settler.start()`, structured

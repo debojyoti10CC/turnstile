@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
-import type { ChannelConfigWire } from '@turnstile/core';
+import type { ChannelConfigWire } from '@turnstilealgo/core';
 import type { Channel, ChannelStorage, ChannelUpdateResult } from './storage.js';
 
 // Loaded via createRequire rather than a static `import ... from 'node:sqlite'`:

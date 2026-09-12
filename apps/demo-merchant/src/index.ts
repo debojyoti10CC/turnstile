@@ -7,9 +7,9 @@ import { HTTPFacilitatorClient } from '@x402/core/server';
 import { x402ResourceServer } from '@x402/core/server';
 import { paymentMiddleware, setSettlementOverrides } from '@x402/express';
 import type { Network } from '@x402/core/types';
-import { caip2FromGenesisHash, type Deployment } from '@turnstile/core';
-import { getAppClient, getChannel as escrowGetChannel } from '@turnstile/escrow-client';
-import { BatchSettlementAvmScheme, SqliteChannelStorage, type OnchainMirror } from '@turnstile/x402-avm-batch';
+import { caip2FromGenesisHash, type Deployment } from '@turnstilealgo/core';
+import { getAppClient, getChannel as escrowGetChannel } from '@turnstilealgo/escrow-client';
+import { BatchSettlementAvmScheme, SqliteChannelStorage, type OnchainMirror } from '@turnstilealgo/x402-avm-batch';
 
 const PORT = Number(process.env.MERCHANT_PORT ?? 4403);
 const APP_ID = BigInt(process.env.X402_AVM_APP_ID ?? '0');

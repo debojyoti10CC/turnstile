@@ -1,4 +1,4 @@
-# @turnstile/settler
+# @turnstilealgo/settler
 
 **Turns signed vouchers into real on-chain settlement.** The claim/settle policy engine behind
 Turnstile's batch-settlement scheme: a `Settler` instance polls channel state, decides which
@@ -7,11 +7,11 @@ Algorand box-reference limit allows, and periodically sweeps unsettled balances 
 with `settle()`.
 
 ```bash
-npm install @turnstile/settler
+npm install @turnstilealgo/settler
 ```
 
 This package is chain-agnostic policy logic plus one class that drives real transactions through
-[`@turnstile/escrow-client`](../escrow-client) — it has no HTTP server and no timers beyond its own
+[`@turnstilealgo/escrow-client`](../escrow-client) — it has no HTTP server and no timers beyond its own
 `start()`/`stop()`. For a ready-to-run standalone process, see [`apps/settler`](../../apps/settler),
 which wraps this package with env-var configuration and process lifecycle handling.
 
@@ -25,12 +25,12 @@ crashed settlement pass never blocks a paid request.
 ## Quickstart
 
 ```ts
-import { Settler } from '@turnstile/settler';
+import { Settler } from '@turnstilealgo/settler';
 
 const settler = new Settler({
   storage,                              // the same ChannelStorage your x402 server writes to
   algorand,                             // an AlgorandClient with a signer registered for receiverSender
-  appClient,                            // from @turnstile/escrow-client's getAppClient()
+  appClient,                            // from @turnstilealgo/escrow-client's getAppClient()
   receiverSender: receiverAddress,      // must be config.receiver or config.receiverAuthorizer
   pollIntervalMs: 30_000,
   withdrawDelayMs: 900_000,             // the channel's on-chain withdraw_delay, in ms
@@ -69,7 +69,7 @@ simpler: once a `(receiver, asset)` pair's on-chain unsettled balance reaches
 
 - Claims are batched up to `maxRowsPerClaimBatch` (default `4` — the worst case under Algorand's
   `MAX_APP_CALL_FOREIGN_REFERENCES = 8` when every row has a different receiver; safe to raise
-  toward `7` if your channels share one receiver — see `@turnstile/escrow-client`'s `fees.ts`).
+  toward `7` if your channels share one receiver — see `@turnstilealgo/escrow-client`'s `fees.ts`).
 - Every tick re-reads on-chain state before submitting; nothing is trusted from a previous tick.
 - `claim()` is a no-op on stale rows on-chain, so a crash mid-batch is always safe to retry on the
   next poll — no idempotency tracking needed on this side.
@@ -92,7 +92,7 @@ simpler: once a `(receiver, asset)` pair's on-chain unsettled balance reaches
 ## Testing
 
 ```bash
-pnpm -F @turnstile/settler test
+pnpm -F @turnstilealgo/settler test
 ```
 
 15 tests: 14 pure policy-logic tests (`policies.test.ts` — no chain, no I/O) plus **I8** verified

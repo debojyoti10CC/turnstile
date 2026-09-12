@@ -6,7 +6,7 @@ import {
   signVoucher,
   type ChannelConfigWire,
   type Deployment,
-} from '@turnstile/core';
+} from '@turnstilealgo/core';
 import { BatchSettlementChannelManager, type OnchainMirror } from '../src/server/channelManager.js';
 import { InMemoryChannelStorage } from '../src/server/storage.js';
 

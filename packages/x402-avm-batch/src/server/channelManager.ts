@@ -8,7 +8,7 @@ import {
   type ChannelConfigWire,
   type Deployment,
   type VoucherWire,
-} from '@turnstile/core';
+} from '@turnstilealgo/core';
 import type { Channel, ChannelStorage } from './storage.js';
 
 export interface OnchainMirror {

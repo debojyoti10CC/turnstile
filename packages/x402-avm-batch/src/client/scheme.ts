@@ -20,7 +20,7 @@ import {
   type AvmBatchPayload,
   type ChannelConfig,
   type Deployment,
-} from '@turnstile/core';
+} from '@turnstilealgo/core';
 import { BATCH_SETTLEMENT_SCHEME, DEFAULT_SERVER_MIN_DEPOSIT_MULTIPLIER, MIN_WITHDRAW_DELAY } from '../constants.js';
 import type { ClientChannelRecord, ClientChannelStorage } from './storage.js';
 import { InMemoryClientChannelStorage } from './storage.js';
@@ -45,7 +45,7 @@ export interface BatchSettlementAvmClientConfig {
 /**
  * Client-side `batch-settlement` scheme for AVM networks. Scoped per
  * docs/DECISIONS.md: deposit group construction is delegated to
- * `buildDepositGroup` (real tx building lives in `@turnstile/escrow-client`
+ * `buildDepositGroup` (real tx building lives in `@turnstilealgo/escrow-client`
  * + a live signer, which don't belong inside a unit-testable scheme class).
  */
 export class BatchSettlementAvmClientScheme implements SchemeNetworkClient {

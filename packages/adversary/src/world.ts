@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import algosdk from 'algosdk';
 import { AlgorandClient, microAlgos } from '@algorandfoundation/algokit-utils';
 import type { AppClient } from '@algorandfoundation/algokit-utils/types/app-client';
-import { channelId as computeChannelId, newSessionKey, signVoucher, type ChannelConfig, type Deployment } from '@turnstile/core';
-import { getAppClient, channelBoxName, unsettledBoxName } from '@turnstile/escrow-client';
+import { channelId as computeChannelId, newSessionKey, signVoucher, type ChannelConfig, type Deployment } from '@turnstilealgo/core';
+import { getAppClient, channelBoxName, unsettledBoxName } from '@turnstilealgo/escrow-client';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const repoRoot = path.resolve(__dirname, '../../../');
@@ -83,7 +83,7 @@ export async function newChannel(world: World, amount = 100_000n) {
 }
 
 /**
- * Deposit builder that, unlike `@turnstile/escrow-client`'s `deposit()`,
+ * Deposit builder that, unlike `@turnstilealgo/escrow-client`'s `deposit()`,
  * lets every field be overridden -- this package's whole job is submitting
  * transactions the safe builder would never construct.
  */

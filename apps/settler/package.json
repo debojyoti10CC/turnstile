@@ -1,6 +1,6 @@
 {
   "name": "@turnstile/settler-service",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "private": true,
   "scripts": {
@@ -9,10 +9,10 @@
     "dev": "tsx src/index.ts"
   },
   "dependencies": {
-    "@turnstile/core": "workspace:*",
-    "@turnstile/escrow-client": "workspace:*",
-    "@turnstile/settler": "workspace:*",
-    "@turnstile/x402-avm-batch": "workspace:*",
+    "@turnstilealgo/core": "workspace:*",
+    "@turnstilealgo/escrow-client": "workspace:*",
+    "@turnstilealgo/settler": "workspace:*",
+    "@turnstilealgo/x402-avm-batch": "workspace:*",
     "@algorandfoundation/algokit-utils": "^9.2.2",
     "algosdk": "^3.7.0"
   },

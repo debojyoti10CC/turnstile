@@ -1,4 +1,4 @@
-import { decodeAddress } from '@turnstile/core';
+import { decodeAddress } from '@turnstilealgo/core';
 
 /** Box key for a channel: `"c" + channelId` (32 bytes). Matches BoxMap(key_prefix=b"c"). */
 export function channelBoxName(channelId: Uint8Array): Uint8Array {

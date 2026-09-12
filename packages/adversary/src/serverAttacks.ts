@@ -6,9 +6,9 @@ import {
   channelIdFromWire as computeChannelId,
   type ChannelConfigWire,
   type Deployment,
-} from '@turnstile/core';
-import { BatchSettlementChannelManager, InMemoryChannelStorage, type OnchainMirror } from '@turnstile/x402-avm-batch';
-import { BatchSettlementAvmClientScheme, InMemoryClientChannelStorage } from '@turnstile/x402-avm-batch';
+} from '@turnstilealgo/core';
+import { BatchSettlementChannelManager, InMemoryChannelStorage, type OnchainMirror } from '@turnstilealgo/x402-avm-batch';
+import { BatchSettlementAvmClientScheme, InMemoryClientChannelStorage } from '@turnstilealgo/x402-avm-batch';
 import { expectFalsy, type AttackResult } from './report.js';
 
 const deployment: Deployment = { genesisHash: crypto.getRandomValues(new Uint8Array(32)), appId: 777n };

@@ -1,4 +1,4 @@
-# @turnstile/x402-avm-batch
+# @turnstilealgo/x402-avm-batch
 
 **The x402 `batch-settlement` scheme for Algorand.** A drop-in plugin for the official
 [`@x402/core`](https://www.npmjs.com/package/@x402/core) SDK — implements `SchemeNetworkClient`,
@@ -10,7 +10,7 @@ Register it once, then every subsequent paid request is a local ed25519 signatur
 blockchain round-trip — until a settler batches many vouchers into a handful of real transactions.
 
 ```bash
-npm install @turnstile/x402-avm-batch @x402/core algosdk
+npm install @turnstilealgo/x402-avm-batch @x402/core algosdk
 ```
 
 ## Why
@@ -30,9 +30,9 @@ session).
 import { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import { HTTPFacilitatorClient, x402ResourceServer } from '@x402/core/server';
 import { paymentMiddleware } from '@x402/express';
-import { caip2FromGenesisHash } from '@turnstile/core';
-import { getAppClient, getChannel } from '@turnstile/escrow-client';
-import { BatchSettlementAvmScheme, SqliteChannelStorage } from '@turnstile/x402-avm-batch';
+import { caip2FromGenesisHash } from '@turnstilealgo/core';
+import { getAppClient, getChannel } from '@turnstilealgo/escrow-client';
+import { BatchSettlementAvmScheme, SqliteChannelStorage } from '@turnstilealgo/x402-avm-batch';
 
 const algorand = AlgorandClient.defaultLocalNet(); // or .testNet() / .mainNet()
 const appClient = getAppClient(algorand, appId);
@@ -80,9 +80,9 @@ on-chain deposit when a channel opens cold. This keeps the scheme class chain-I/
 import { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import { x402Client } from '@x402/core/client';
 import { wrapFetchWithPayment } from '@x402/fetch';
-import { caip2FromGenesisHash } from '@turnstile/core';
-import { deposit, getAppClient } from '@turnstile/escrow-client';
-import { BatchSettlementAvmClientScheme, type BuildDepositGroup } from '@turnstile/x402-avm-batch';
+import { caip2FromGenesisHash } from '@turnstilealgo/core';
+import { deposit, getAppClient } from '@turnstilealgo/escrow-client';
+import { BatchSettlementAvmClientScheme, type BuildDepositGroup } from '@turnstilealgo/x402-avm-batch';
 
 const algorand = AlgorandClient.defaultLocalNet();
 algorand.account.setSigner(payerAddress, payerSigner); // your signer for the payer's key
@@ -112,8 +112,8 @@ const res = await fetchWithPayment('https://your-merchant.example/v1/data');
 ### Facilitator
 
 ```ts
-import { BatchSettlementAvmFacilitatorScheme } from '@turnstile/x402-avm-batch';
-import { refund } from '@turnstile/escrow-client';
+import { BatchSettlementAvmFacilitatorScheme } from '@turnstilealgo/x402-avm-batch';
+import { refund } from '@turnstilealgo/escrow-client';
 
 const scheme = new BatchSettlementAvmFacilitatorScheme({
   channelManager,
@@ -138,7 +138,7 @@ everything above is extracted from code that's actually deployed and tested, not
 | `BatchSettlementChannelManager` | Voucher verification (I4 channel-id binding, I9 signed-max/balance bounds), atomic charge commits (I12 serialization), cold-start recovery |
 | `ChannelStorage` | Interface: `get`, `list`, `updateChannel` (atomic read-modify-write) |
 | `InMemoryChannelStorage` | Default backend — per-channel async lock, no persistence |
-| `SqliteChannelStorage` | Persistent backend on Node's built-in `node:sqlite` (no native build step). Safe for a merchant and a separate `@turnstile/settler`-based process to share one file |
+| `SqliteChannelStorage` | Persistent backend on Node's built-in `node:sqlite` (no native build step). Safe for a merchant and a separate `@turnstilealgo/settler`-based process to share one file |
 | `BatchSettlementAvmClientScheme` | `SchemeNetworkClient` implementation. Builds deposit payloads cold, voucher payloads in steady state, verifies any server-reported corrective-402 state against its own key before adopting it (I11) |
 | `ClientChannelStorage` / `InMemoryClientChannelStorage` | Client-side channel bookkeeping (signed ceiling, confirmed charged amount) |
 | `BatchSettlementAvmFacilitatorScheme` | `SchemeNetworkFacilitator` implementation — validates vouchers/deposits/refunds, submits cooperative `refund()` |
@@ -154,13 +154,13 @@ type level; there is no separate types package to keep in sync.
   force a difference (box-reference batch-size limits instead of opcode-budget math, no fee-payer
   sponsorship yet), it's called out inline in [the protocol spec](../../docs/spec/scheme_batch_settlement_avm.md).
 - Deliberately does **not** include the EVM reference's pending-request TTL reservation system or an
-  auto claim/settle/refund loop — that loop is [`@turnstile/settler`](../settler), kept as a
+  auto claim/settle/refund loop — that loop is [`@turnstilealgo/settler`](../settler), kept as a
   separate concern so the scheme itself has no timers or background state.
 
 ## Testing
 
 ```bash
-pnpm -F @turnstile/x402-avm-batch test
+pnpm -F @turnstilealgo/x402-avm-batch test
 ```
 
 15 tests: channel-id binding (I4), signature/balance/signed-max bounds (I9), 50-concurrent-request

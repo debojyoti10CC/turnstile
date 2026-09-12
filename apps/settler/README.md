@@ -1,6 +1,6 @@
 # @turnstile/settler-service
 
-A ready-to-run standalone process wrapping [`@turnstile/settler`](../../packages/settler)'s
+A ready-to-run standalone process wrapping [`@turnstilealgo/settler`](../../packages/settler)'s
 claim/settle policy engine. If you just want a settler running against your deployment without
 writing any code, this is it — `packages/settler` is the library for embedding the same logic into
 your own process instead.
@@ -38,7 +38,7 @@ accounts `contracts/scripts/deploy.py` created; any other network needs it expli
 | `CLAIM_THRESHOLD_ATOMIC` | no | Claim a channel once its unclaimed amount reaches this |
 | `CLAIM_PERIODIC_MS` | no | Claim a channel once this long has passed since its last claim, regardless of amount |
 | `SETTLE_MIN_UNSETTLED_ATOMIC` | no (default: anything `> 0`) | Settle a `(receiver, asset)` pair once its unsettled balance reaches this |
-| `MAX_ROWS_PER_CLAIM_BATCH` | no (default `4`) | See `@turnstile/escrow-client`'s box-reference batching notes |
+| `MAX_ROWS_PER_CLAIM_BATCH` | no (default `4`) | See `@turnstilealgo/escrow-client`'s box-reference batching notes |
 | `NETWORK` | no (default `localnet`) | `localnet` \| `testnet` \| `mainnet` |
 
 The process logs every claim and settle to stdout and exits non-zero on a startup config error;

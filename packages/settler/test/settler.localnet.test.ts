@@ -28,9 +28,9 @@ import {
   toB64,
   type ChannelConfig,
   type Deployment,
-} from '@turnstile/core';
-import { deposit, getAppClient, initiateWithdraw, finalizeWithdraw, getChannel } from '@turnstile/escrow-client';
-import { InMemoryChannelStorage, type Channel } from '@turnstile/x402-avm-batch';
+} from '@turnstilealgo/core';
+import { deposit, getAppClient, initiateWithdraw, finalizeWithdraw, getChannel } from '@turnstilealgo/escrow-client';
+import { InMemoryChannelStorage, type Channel } from '@turnstilealgo/x402-avm-batch';
 import { Settler } from '../src/settler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

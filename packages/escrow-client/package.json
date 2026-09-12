@@ -1,6 +1,6 @@
 {
-  "name": "@turnstile/escrow-client",
-  "version": "0.1.0",
+  "name": "@turnstilealgo/escrow-client",
+  "version": "0.1.1",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@turnstile/core": "workspace:*",
+    "@turnstilealgo/core": "workspace:*",
     "algosdk": "^3.7.0",
     "@algorandfoundation/algokit-utils": "^9.2.2"
   },

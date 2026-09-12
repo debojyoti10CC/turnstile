@@ -1,7 +1,7 @@
 import express from 'express';
 import type { PaymentPayload, PaymentRequirements } from '@x402/core/types';
-import { refund } from '@turnstile/escrow-client';
-import { BatchSettlementAvmFacilitatorScheme } from '@turnstile/x402-avm-batch';
+import { refund } from '@turnstilealgo/escrow-client';
+import { BatchSettlementAvmFacilitatorScheme } from '@turnstilealgo/x402-avm-batch';
 import { setupChain } from './chain.js';
 
 const PORT = Number(process.env.FACILITATOR_PORT ?? 4402);

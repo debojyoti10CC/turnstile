@@ -8,7 +8,7 @@ const CHANNELS_POLL_MS = 3000;
 const STATIC_POLL_MS = 10000; // bench.json / report.json only change when those CLIs are rerun
 
 // CAIP-2 ids for Algorand MainNet/TestNet (first 32 chars of the url-safe b64
-// genesis hash) -- mirrors @turnstile/core's CAIP2 constants. Anything else
+// genesis hash) -- mirrors @turnstilealgo/core's CAIP2 constants. Anything else
 // is LocalNet: its genesis hash is regenerated per `algokit localnet reset`,
 // so there's no fixed id to match against.
 const CAIP2_MAINNET = 'algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k';

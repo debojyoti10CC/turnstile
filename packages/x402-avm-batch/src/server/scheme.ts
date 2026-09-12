@@ -24,7 +24,7 @@ import {
   type AvmBatchPayload,
   type ChannelStateWire,
   type Deployment,
-} from '@turnstile/core';
+} from '@turnstilealgo/core';
 import { BATCH_SETTLEMENT_SCHEME, MIN_WITHDRAW_DELAY } from '../constants.js';
 import { BatchSettlementChannelManager, type FetchOnchainChannel } from './channelManager.js';
 import { InMemoryChannelStorage, type ChannelStorage } from './storage.js';

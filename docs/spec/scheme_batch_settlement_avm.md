@@ -82,7 +82,7 @@ One `claim` call's row count is bounded by Algorand's per-transaction box-refere
 constraint, verified against real transactions). Each row needs its own channel box plus one
 shared unsettled-balance box per distinct receiver, so the exact cap is 7 rows when every row
 shares a receiver (`MAX_CLAIM_ROWS_PER_CALL_SAME_RECEIVER`) down to 4 when every row has a
-different receiver (`MAX_CLAIM_ROWS_PER_CALL`); `@turnstile/escrow-client`'s `claimBatch` enforces
+different receiver (`MAX_CLAIM_ROWS_PER_CALL`); `@turnstilealgo/escrow-client`'s `claimBatch` enforces
 this bound and chunks larger batches into multiple calls.
 
 ## 4. Voucher

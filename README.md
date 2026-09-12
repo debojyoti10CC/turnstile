@@ -1,13 +1,12 @@
 <!-- markdownlint-disable MD033 -->
 <p align="center">
 <img width="320" height="320" alt="NEX (34)" src="https://github.com/user-attachments/assets/bd39f5ac-0827-49b9-befb-cb7f5260df17" />
-
-
 </p>
 
 <h1 align="center">TurnStile</h1>
 <p align="center">
   <a href="https://github.com/debojyoti10CC/turnstile"><img src="https://img.shields.io/badge/github-debojyoti10CC%2Fturnstile-1A2236?style=flat-square&logo=github" alt="GitHub" /></a>
+  <a href="https://www.npmjs.com/package/@turnstilealgo/core"><img src="https://img.shields.io/npm/v/@turnstilealgo/core?style=flat-square&label=npm&logo=npm&color=22D68B" alt="npm" /></a>
   <a href="https://github.com/x402-foundation/x402"><img src="https://img.shields.io/badge/protocol-x402-22D68B?style=flat-square" alt="x402" /></a>
   <a href="https://algorand.co"><img src="https://img.shields.io/badge/chain-Algorand-1A2236?style=flat-square&logo=algorand" alt="Algorand" /></a>
   <a href="https://dev.algorand.co/algokit/languages/python/overview/"><img src="https://img.shields.io/badge/contract-puyapy-22D68B?style=flat-square" alt="puyapy" /></a>
@@ -165,14 +164,19 @@ turnstile/
 ## SDK packages
 
 Each package is independently documented, versioned, and installable — use one directly in your own
-project instead of running the whole demo stack:
+project instead of running the whole demo stack. Published under the
+[`@turnstilealgo`](https://www.npmjs.com/org/turnstilealgo) npm org:
 
 | Package | Install | What it's for |
 |---|---|---|
-| [`@turnstile/core`](packages/core) | `npm i @turnstile/core` | Voucher/channel-id encoding, ed25519 signing, wire types — the shared vocabulary every other package builds on |
-| [`@turnstile/escrow-client`](packages/escrow-client) | `npm i @turnstile/escrow-client` | Typed transaction builders for the escrow contract (deposit, claim, settle, refund, withdraw) |
-| [`@turnstile/x402-avm-batch`](packages/x402-avm-batch) | `npm i @turnstile/x402-avm-batch` | The `@x402/core` plugin itself — client/server/facilitator schemes, drop-in with `@x402/express` and `@x402/fetch` |
-| [`@turnstile/settler`](packages/settler) | `npm i @turnstile/settler` | Claim/settle policy engine; embed it in your own process, or run [`apps/settler`](apps/settler) as a ready-made standalone service |
+| [`@turnstilealgo/core`](https://www.npmjs.com/package/@turnstilealgo/core) [![npm](https://img.shields.io/npm/v/@turnstilealgo/core)](https://www.npmjs.com/package/@turnstilealgo/core) | `npm i @turnstilealgo/core` | Voucher/channel-id encoding, ed25519 signing, wire types — the shared vocabulary every other package builds on |
+| [`@turnstilealgo/escrow-client`](packages/escrow-client) | *not yet published* | Typed transaction builders for the escrow contract (deposit, claim, settle, refund, withdraw) |
+| [`@turnstilealgo/x402-avm-batch`](packages/x402-avm-batch) | *not yet published* | The `@x402/core` plugin itself — client/server/facilitator schemes, drop-in with `@x402/express` and `@x402/fetch` |
+| [`@turnstilealgo/settler`](packages/settler) | *not yet published* | Claim/settle policy engine; embed it in your own process, or run [`apps/settler`](apps/settler) as a ready-made standalone service |
+
+Until the rest are published, install them from source: clone the repo, `pnpm install && pnpm -r build`,
+and reference `packages/<name>/dist` directly, or use the whole demo stack per the
+[Quickstart](#quickstart-localnet) below.
 
 ## Quickstart (LocalNet)
 

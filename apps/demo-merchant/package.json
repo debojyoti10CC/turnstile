@@ -1,6 +1,6 @@
 {
   "name": "@turnstile/demo-merchant",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "private": true,
   "scripts": {
@@ -9,9 +9,9 @@
     "dev": "tsx src/index.ts"
   },
   "dependencies": {
-    "@turnstile/core": "workspace:*",
-    "@turnstile/escrow-client": "workspace:*",
-    "@turnstile/x402-avm-batch": "workspace:*",
+    "@turnstilealgo/core": "workspace:*",
+    "@turnstilealgo/escrow-client": "workspace:*",
+    "@turnstilealgo/x402-avm-batch": "workspace:*",
     "@x402/core": "2.25.0",
     "@x402/express": "2.25.0",
     "@algorandfoundation/algokit-utils": "^9.2.2",

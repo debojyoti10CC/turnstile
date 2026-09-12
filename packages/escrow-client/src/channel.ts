@@ -1,6 +1,6 @@
 import type { AlgorandClient } from '@algorandfoundation/algokit-utils';
 import type { AppClient } from '@algorandfoundation/algokit-utils/types/app-client';
-import { encodeAddress, type ChannelConfig } from '@turnstile/core';
+import { encodeAddress, type ChannelConfig } from '@turnstilealgo/core';
 import { channelBoxName, unsettledBoxName } from './boxes.js';
 
 export interface ChannelState {
